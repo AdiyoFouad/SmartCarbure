@@ -1,70 +1,33 @@
-# Getting Started with Create React App
+# SmartCarbure : frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Interface web de SmartCarbure, construite avec React 19 et Vite.
 
-## Available Scripts
+## Commandes
 
-In the project directory, you can run:
+```bash
+npm install        # installer les dépendances
+cp .env.example .env
+npm run dev        # serveur de développement sur http://localhost:3000 (/api redirigé vers localhost:8080)
+npm test           # lancer les tests (Vitest)
+npm run build      # construire la version de production dans dist/
+npm run preview    # servir la version construite
+```
 
-### `npm start`
+`VITE_USE_MOCK=true` dans `.env` fait renvoyer aux services les données fictives de `src/data` au lieu d'appeler le backend. Ce mode démonstration reste à implémenter.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Organisation de `src/`
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Dossier | Contenu |
+|---|---|
+| `pages/` | un écran complet par route |
+| `components/` | éléments réutilisables, sans appel au backend |
+| `services/` | tous les appels HTTP, via le client unique `api.js` (préfixe `/api`, gestion des erreurs et du délai d'attente) |
+| `context/` | état partagé : l'utilisateur connecté (`AuthContext`) |
+| `hooks/` | logique réutilisable (`useAuth`, `useRequete`, `useGeolocalisation`) |
+| `utils/` | fonctions de formatage et de calcul |
+| `constants/` | carburants, types d'emplacement, types de rupture, tris |
+| `data/` | données fictives du mode démonstration |
 
-### `npm test`
+Chaque composant et chaque page a son propre fichier `.css`. Les couleurs et les espacements sont définis par des variables dans `src/index.css`.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Les routes REST attendues du backend sont décrites dans [docs/contrat-api.md](docs/contrat-api.md).
