@@ -141,17 +141,15 @@ Les tests à réaliser manuellement depuis le frontend pour valider les fonction
 
 ## 4. Exécuter le logiciel
 
-### 4.1 Lancer l'application
+### 4.1 Lancer le frontend et le backend avec Docker
+
+Depuis la racine du projet, construisez les images et démarrez les services avec :
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 
-Pour construire et lancer en une seule commande : `docker compose up --build`
-
-Pour lancer en arrière-plan et garder le terminal libre : `docker compose up -d`
-
-Trois conteneurs démarrent :
+Compose démarre le frontend, le backend et la base PostgreSQL. Laissez cette commande ouverte pour suivre les journaux. L'application est accessible ici :
 
 | Conteneur | Rôle | Adresse |
 |---|---|---|
