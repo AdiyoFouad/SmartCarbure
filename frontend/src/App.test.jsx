@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('affiche le titre de l\'application', () => {
+test("affiche l'application avec la navigation et la page d'accueil", () => {
   render(<App />);
-  expect(screen.getByRole('heading', { name: 'SmartCarbure' })).toBeInTheDocument();
+  expect(screen.getByRole('navigation', { name: 'Navigation principale' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'Accueil' })).toBeInTheDocument();
 });

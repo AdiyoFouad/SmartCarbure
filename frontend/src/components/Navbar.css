@@ -1,0 +1,93 @@
+.navbar {
+  background: var(--couleur-principale);
+  color: #fff;
+}
+
+.navbar__contenu {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-2);
+  min-height: 3.5rem;
+}
+
+.navbar__marque {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.navbar__bouton-menu {
+  min-height: 2.5rem;
+  padding: var(--espace-1) var(--espace-3);
+  border: 2px solid #fff;
+  border-radius: var(--rayon);
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navbar__liens {
+  display: none;
+  flex-basis: 100%;
+  flex-direction: column;
+  margin: 0;
+  padding: 0 0 var(--espace-3);
+  list-style: none;
+}
+
+.navbar__liens--ouvert {
+  display: flex;
+}
+
+.navbar__lien {
+  display: inline-block;
+  padding: var(--espace-2) var(--espace-3);
+  border: none;
+  border-radius: var(--rayon);
+  background: none;
+  color: #fff;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.navbar__lien:hover,
+.navbar__lien.active {
+  background: var(--couleur-principale-foncee);
+}
+
+.navbar__compte {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-2);
+}
+
+.navbar__utilisateur {
+  padding: var(--espace-2) var(--espace-3);
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .navbar__bouton-menu {
+    display: none;
+  }
+
+  .navbar__liens {
+    display: flex;
+    flex-basis: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--espace-1);
+    padding: 0;
+  }
+
+  .navbar__compte {
+    margin-left: var(--espace-3);
+  }
+}
