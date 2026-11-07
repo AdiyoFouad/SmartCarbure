@@ -191,6 +191,32 @@ Corps d'erreur conseillé (facultatif : le frontend affiche ses propres messages
 - `ecart` = prix moyen de la zone 1 moins prix moyen de la zone 2.
 - Une zone sans station renvoie `prixMoyen: null` et `nombreStations: 0`. Dans ce cas, `ecart` vaut `null`.
 
+### Économie sur un plein (F15)
+
+`GET /api/economie?idStation=35000001&carburant=GAZOLE&litres=50`
+
+Le prix moyen local est calculé par le backend, sur les stations de la même ville qui vendent ce carburant (stations en rupture exclues).
+
+**Réponse 200 :**
+
+```json
+{
+  "prixStation": 1.749,
+  "prixMoyenLocal": 1.771,
+  "litres": 50,
+  "montant": 1.10
+}
+```
+
+`montant` est positif pour une économie et négatif pour un surcoût, arrondi au centime.
+
+**Erreurs :**
+- 400 si `litres` n'est pas un nombre positif, ou si la station ne vend pas ce carburant ;
+- 404 si la station n'existe pas ;
+- 503 si l'API Prix des carburants est indisponible.
+
+L'export CSV des résultats (F18) n'a pas de route : le frontend génère le fichier à partir des stations déjà affichées.
+
 ### Connexion (F12)
 
 `POST /api/auth/connexion`
