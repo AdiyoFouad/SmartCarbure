@@ -76,6 +76,10 @@ Le frontend suit une **architecture à composants**, qui sépare l'affichage de 
 
 La carte est affichée avec **Leaflet** (react-leaflet) sur un fond **OpenStreetMap**.
 
+### 2.3 Contrat d'API
+
+Le frontend et le backend communiquent selon le contrat d'API décrit dans [`docs/contrat-api.md`](docs/contrat-api.md) : routes REST, paramètres, format JSON des réponses et des erreurs, codes HTTP, et responsable de chaque route. Les deux équipes s'y alignent pour développer en parallèle ; toute modification d'une route est décidée ensemble et reportée dans ce document.
+
 ---
 
 ## 3. Modèles statiques
