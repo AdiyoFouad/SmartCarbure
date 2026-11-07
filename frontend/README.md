@@ -30,4 +30,4 @@ npm run preview    # servir la version construite
 
 Chaque composant et chaque page a son propre fichier `.css`. Les couleurs et les espacements sont définis par des variables dans `src/index.css`.
 
-Les routes REST attendues du backend sont décrites dans [docs/contrat-api.md](docs/contrat-api.md).
+Les routes REST attendues du backend sont décrites dans [docs/contrat-api.md](../docs/contrat-api.md) (à la racine du dépôt).
