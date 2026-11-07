@@ -54,13 +54,13 @@ Le backend suit une **architecture en couches** (Controller – Service – Clie
 | Couche | Responsabilité |
 |---|---|
 | `controller` | Recevoir les requêtes HTTP, valider les paramètres, renvoyer du JSON |
-| `service` | Logique métier : recherche, filtres, tri, calcul de distance, gestion des comptes et favoris |
-| `client` | Appeler les API externes et convertir leur JSON en objets Java |
+| `service` | Logique métier : recherche, filtres, tri, calcul de distance, trajet, économie sur un plein, comparaison, comptes, jetons et favoris |
+| `client` | Appeler les API externes (Prix des carburants, service d'itinéraire) et convertir leur JSON en objets Java |
 | `repository` | Accéder à PostgreSQL (Spring Data JPA) |
 | `model` | Classes métier (Station, Carburant, Utilisateur…) |
 | `dto` | Objets échangés avec le frontend |
 | `exception` | Exceptions métier et gestion centralisée des erreurs |
-| `config` | Configuration (sécurité, CORS, URL des API) |
+| `config` | Configuration (sécurité avec Spring Security et JWT, CORS, client HTTP et URL des API) |
 
 ### 2.2 Architecture du frontend
 
@@ -97,9 +97,24 @@ backend/src/main/java/fr/miage/smartcarbure/
 └── SmartCarbureApplication.java
 ```
 
+| Package | Classes |
+|---|---|
+| `model` | `Station`, `Position`, `Ville`, `Departement`, `Region`, `Service`, `Carburant`, `PrixCarburant`, `Trajet`, `Utilisateur`, `Favori`, `TypeEmplacement`, `TypeRupture` |
+| `dto` | `CritereRecherche`, `StationDTO`, `TrajetResponse`, `InscriptionRequest`, `ConnexionRequest`, `AuthResponse`, `FavoriDTO`, `PreferencesDTO`, `EconomieRequest`, `EconomieResponse`, `TypeTri` |
+| `client` | `CarburantApiClient`, `ItineraireClient` |
+| `service` | `RechercheService`, `CalculDistance`, `StationService`, `TrajetService`, `EconomieService`, `ComparaisonService`, `UtilisateurService`, `FavoriService`, `JwtService` |
+| `repository` | `UtilisateurRepository`, `FavoriRepository` |
+| `controller` | `StationController`, `TrajetController`, `ComparaisonController`, `EconomieController`, `AuthController`, `FavoriController`, `PreferencesController` |
+| `exception` | `ApiIndisponibleException`, `StationIntrouvableException`, `UtilisateurDejaExistantException`, `IdentifiantsInvalidesException`, `GlobalExceptionHandler` |
+| `config` | `RestClientConfig`, `CorsConfig`, `SecurityConfig` |
+
+Les routes REST exposées par les contrôleurs sont décrites dans le contrat d'API [`frontend/docs/contrat-api.md`](frontend/docs/contrat-api.md).
+
 ### 3.2 Diagramme de classes (modèle métier)
 
 ![Diagramme de classes](docs/diagrammes/classes.png)
+
+*À mettre à jour dans le diagramme : ajouter la classe `Favori` entre `Utilisateur` et `Station`, et retirer l'association `Utilisateur – Trajet` (les trajets ne sont pas enregistrés). Les tableaux ci-dessous font foi en attendant.*
 
 ### 3.3 Classes principales et responsabilités
 
@@ -112,7 +127,8 @@ backend/src/main/java/fr/miage/smartcarbure/
 | `Carburant` | Type de carburant (Gazole, SP95, SP98, E10, E85, GPLc) |
 | `PrixCarburant` | Classe d'association entre `Station` et `Carburant` : prix, date de mise à jour, disponibilité, type et début de rupture |
 | `Utilisateur` | Compte utilisateur : identité, email, mot de passe haché, rayon de recherche préféré |
-| `Trajet` | Itinéraire entre une position de départ et une position d'arrivée |
+| `Favori` | Station favorite d'un utilisateur : seul l'identifiant de la station (celui de l'API) est enregistré en base |
+| `Trajet` | Itinéraire entre une position de départ et une position d'arrivée ; calculé à chaque recherche, jamais enregistré |
 | `TypeEmplacement` | Énumération : `ROUTE` ou `AUTOROUTE` (champ `pop` de l'API : R ou A) |
 | `TypeRupture` | Énumération : `TEMPORAIRE` ou `DEFINITIVE` |
 
@@ -126,15 +142,15 @@ backend/src/main/java/fr/miage/smartcarbure/
 | Station – Carburant (via `PrixCarburant`) | * – * | Une station vend plusieurs carburants, chacun avec son prix et sa disponibilité |
 | Station – Position | 0..1 – 1 | Une station est située à une position |
 | Trajet – Position | départ et arrivée | Un trajet a une position de départ et une position d'arrivée |
-| Utilisateur – Station | * – * | Un utilisateur a des stations favorites |
+| Utilisateur – Station (via `Favori`) | 1 – * favoris, chacun vers 1 station | Un utilisateur a des stations favorites |
 | Utilisateur – Carburant | * – 0..1 | Un utilisateur peut choisir un carburant préféré |
-| Utilisateur – Trajet | 1 – * | Un utilisateur effectue des trajets |
 
 ### 3.5 Données persistées
 
 | Données | Stockage |
 |---|---|
 | Stations, prix, ruptures, horaires, services | Non stockées : lues en temps réel depuis l'API |
+| Trajets | Non stockés : calculés à chaque recherche par le service d'itinéraire |
 | Utilisateurs, favoris (identifiant de station), préférences | PostgreSQL |
 
 ---
@@ -242,3 +258,6 @@ L'application est conteneurisée avec **Docker** et lancée avec **Docker Compos
 | Énumérations `TypeEmplacement` et `TypeRupture` | Valeurs fixes et connues, plus sûres que des chaînes de caractères |
 | Gestion centralisée des erreurs | L'application ne plante pas si une API externe est indisponible : elle renvoie un message clair |
 | Docker Compose | Installation et lancement identiques pour tous les membres de l'équipe et pour le client |
+| Économie sur un plein calculée par le backend, export CSV généré par le frontend | Le backend dispose de tous les prix pour calculer le prix moyen local ; le CSV ne contient que les résultats déjà affichés, sans nouvel appel |
+| Trajets non enregistrés | Seules les données propres aux utilisateurs (comptes, favoris, préférences) sont stockées |
+| Authentification par jeton JWT (Spring Security) | Le backend reste sans état de session ; le frontend envoie le jeton dans l'en-tête `Authorization` |

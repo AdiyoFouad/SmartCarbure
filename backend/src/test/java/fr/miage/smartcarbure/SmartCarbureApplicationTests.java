@@ -1,10 +1,10 @@
-package com.smartcarbure.backend;
+package fr.miage.smartcarbure;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class BackendApplicationTests {
+class SmartCarbureApplicationTests {
 
 	@Test
 	void contextLoads() {
