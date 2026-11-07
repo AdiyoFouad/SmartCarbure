@@ -24,7 +24,7 @@ npm run preview    # servir la version construite
 | `services/` | tous les appels HTTP, via le client unique `api.js` (préfixe `/api`, gestion des erreurs et du délai d'attente) |
 | `context/` | état partagé : l'utilisateur connecté (`AuthContext`) |
 | `hooks/` | logique réutilisable (`useAuth`, `useRequete`, `useGeolocalisation`) |
-| `utils/` | fonctions de formatage et de calcul |
+| `utils/` | fonctions de formatage et export CSV |
 | `constants/` | carburants, types d'emplacement, types de rupture, tris |
 | `data/` | données fictives du mode démonstration |
 
