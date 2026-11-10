@@ -4,15 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.miage.smartcarbure.model.Carburant;
+import fr.miage.smartcarbure.model.enums.Carburant;
 import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Service;
 import fr.miage.smartcarbure.model.Station;
-import fr.miage.smartcarbure.model.TypeEmplacement;
-import fr.miage.smartcarbure.model.TypeRupture;
+import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import fr.miage.smartcarbure.model.enums.TypeRupture;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.DayOfWeek;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 /** Tests de la conversion du JSON de l'API Prix des carburants (fichiers réels dans src/test/resources). */
 class StationJsonConverterTest {
@@ -57,6 +59,15 @@ class StationJsonConverterTest {
 
     private static JsonNode json(String texte) {
         return JSON.readTree(texte);
+    }
+
+    /** Lit un objet JSON et lui ajoute "id": "1" s'il n'en a pas (l'identifiant est obligatoire). */
+    private static JsonNode avecId(String texte) {
+        ObjectNode objet = (ObjectNode) JSON.readTree(texte);
+        if (!objet.has("id")) {
+            objet.put("id", "1");
+        }
+        return objet;
     }
 
     private static Station station(String id) {
@@ -106,14 +117,53 @@ class StationJsonConverterTest {
 
     @Test
     void raccourcisGeographiquesNullSiUnMaillonManque() {
-        Station sansVille = converter.convertir(json("{\"id\": 1}"));
+        Station sansVille = converter.convertir(avecId("{\"id\": 1}"));
         assertNull(sansVille.getVille());
         assertNull(sansVille.getDepartement());
         assertNull(sansVille.getRegion());
 
-        Station sansRegion = converter.convertir(json("{\"ville\": \"Rennes\", \"code_departement\": \"35\"}"));
+        Station sansRegion = converter.convertir(avecId(
+                "{\"ville\": \"Rennes\", \"code_departement\": \"35\", \"departement\": \"Ille-et-Vilaine\"}"));
         assertEquals("35", sansRegion.getDepartement().getCode());
         assertNull(sansRegion.getRegion());
+    }
+
+    @Test
+    void regionSansCodeDonneNull() {
+        Station s = converter.convertir(avecId("{\"ville\": \"Rennes\", \"code_departement\": \"35\", "
+                + "\"departement\": \"Ille-et-Vilaine\", \"region\": \"Bretagne\"}"));
+
+        assertNotNull(s.getDepartement());
+        assertNull(s.getRegion());
+    }
+
+    @Test
+    void departementSansNomDonneNull() {
+        Station s = converter.convertir(avecId("{\"ville\": \"Rennes\", \"code_departement\": \"35\", "
+                + "\"code_region\": \"53\", \"region\": \"Bretagne\"}"));
+
+        assertNotNull(s.getVille());
+        assertNull(s.getDepartement());
+        assertNull(s.getRegion());
+    }
+
+    @Test
+    void villeAvecCodePostalSansNomGardeLeDepartement() {
+        Station s = converter.convertir(avecId("{\"cp\": \"35000\", \"code_departement\": \"35\", "
+                + "\"departement\": \"Ille-et-Vilaine\", \"code_region\": \"53\", \"region\": \"Bretagne\"}"));
+
+        assertNull(s.getVille().getNom());
+        assertEquals("35000", s.getVille().getCodePostal());
+        assertEquals("Ille-et-Vilaine", s.getDepartement().getNom());
+        assertEquals("Bretagne", s.getRegion().getNom());
+    }
+
+    @Test
+    void villeSansNomNiCodePostalDonneNull() {
+        Station s = converter.convertir(avecId("{\"code_departement\": \"35\", \"departement\": \"Ille-et-Vilaine\"}"));
+
+        assertNull(s.getVille());
+        assertNull(s.getDepartement());
     }
 
     // 3
@@ -127,7 +177,7 @@ class StationJsonConverterTest {
     // 4
     @Test
     void positionCalculeeDepuisLatitudeLongitudeSiGeomAbsent() {
-        Station s = converter.convertir(json(
+        Station s = converter.convertir(avecId(
                 "{\"latitude\": \"4809890.2183757\", \"longitude\": \"-165400.71882227\", \"adresse\": \"19, BD LEON BOURGEOIS\"}"));
 
         assertEquals(48.098902183757, s.getPosition().getLatitude(), 1e-6);
@@ -137,7 +187,7 @@ class StationJsonConverterTest {
 
     @Test
     void positionAvecAdresseSansCoordonnees() {
-        Station s = converter.convertir(json("{\"adresse\": \"Rue X\", \"geom\": null}"));
+        Station s = converter.convertir(avecId("{\"adresse\": \"Rue X\", \"geom\": null}"));
 
         assertNotNull(s.getPosition());
         assertEquals("Rue X", s.getPosition().getAdresse());
@@ -147,7 +197,7 @@ class StationJsonConverterTest {
 
     @Test
     void positionAvecCoordonneesSansAdresse() {
-        Station s = converter.convertir(json("{\"geom\": {\"lat\": 48.1, \"lon\": -1.6}}"));
+        Station s = converter.convertir(avecId("{\"geom\": {\"lat\": 48.1, \"lon\": -1.6}}"));
 
         assertEquals(48.1, s.getPosition().getLatitude(), DELTA);
         assertEquals(-1.6, s.getPosition().getLongitude(), DELTA);
@@ -156,7 +206,7 @@ class StationJsonConverterTest {
 
     @Test
     void positionNullSansAdresseNiCoordonnees() {
-        assertNull(converter.convertir(json("{\"ville\": \"Rennes\", \"geom\": {\"lat\": 48.1}}")).getPosition());
+        assertNull(converter.convertir(avecId("{\"ville\": \"Rennes\", \"geom\": {\"lat\": 48.1}}")).getPosition());
     }
 
     // 5
@@ -167,7 +217,7 @@ class StationJsonConverterTest {
         assertEquals(2, stationsAutoroute.size());
         stationsAutoroute.forEach(s -> assertEquals(TypeEmplacement.AUTOROUTE, s.getEmplacement()));
 
-        assertNull(converter.convertir(json("{\"pop\": \"X\"}")).getEmplacement());
+        assertNull(converter.convertir(avecId("{\"pop\": \"X\"}")).getEmplacement());
     }
 
     // 6
@@ -175,7 +225,7 @@ class StationJsonConverterTest {
     void automateOuiNonOuAbsent() {
         assertTrue(station("35000013").isAutomate24h());
         assertFalse(station("35200008").isAutomate24h());
-        assertFalse(converter.convertir(json("{}")).isAutomate24h());
+        assertFalse(converter.convertir(avecId("{}")).isAutomate24h());
     }
 
     // 7
@@ -230,7 +280,7 @@ class StationJsonConverterTest {
     // 10
     @Test
     void carburantSansPrixNiRuptureAbsent() {
-        Station s = converter.convertir(json("{\"gazole_prix\": 1.5, \"sp98_prix\": null, \"e85_maj\": null}"));
+        Station s = converter.convertir(avecId("{\"gazole_prix\": 1.5, \"sp98_prix\": null, \"e85_maj\": null}"));
 
         assertEquals(1, s.getCarburants().size());
         assertEquals(Carburant.GAZOLE, s.getCarburants().get(0).getCarburant());
@@ -246,7 +296,7 @@ class StationJsonConverterTest {
         assertEquals(1, unSeul.size());
         assertEquals("Automate CB 24/24", unSeul.get(0).getNom());
 
-        assertTrue(converter.convertir(json("{\"services_service\": null}")).getServices().isEmpty());
+        assertTrue(converter.convertir(avecId("{\"services_service\": null}")).getServices().isEmpty());
     }
 
     // 12
@@ -291,7 +341,7 @@ class StationJsonConverterTest {
         String horaires = "{\\\"jour\\\": {\\\"@id\\\": \\\"3\\\", \\\"@nom\\\": \\\"Mercredi\\\", \\\"@ferme\\\": \\\"\\\", "
                 + "\\\"horaire\\\": [{\\\"@ouverture\\\": \\\"08.00\\\", \\\"@fermeture\\\": \\\"12.00\\\"}, "
                 + "{\\\"@ouverture\\\": \\\"14.00\\\", \\\"@fermeture\\\": \\\"19.30\\\"}]}}";
-        Station s = converter.convertir(json("{\"horaires\": \"" + horaires + "\"}"));
+        Station s = converter.convertir(avecId("{\"horaires\": \"" + horaires + "\"}"));
 
         assertEquals(1, s.getHoraires().size());
         Horaire mercredi = s.getHoraires().get(0);
@@ -303,16 +353,16 @@ class StationJsonConverterTest {
 
     @Test
     void horairesNullDonneListeVide() {
-        assertTrue(converter.convertir(json("{\"horaires\": null}")).getHoraires().isEmpty());
+        assertTrue(converter.convertir(avecId("{\"horaires\": null}")).getHoraires().isEmpty());
     }
 
     // 13
     @Test
-    void objetVideDonneStationVide() {
-        Station s = converter.convertir(json("{}"));
+    void objetAvecSeulementIdDonneStationVide() {
+        Station s = converter.convertir(avecId("{}"));
 
         assertNotNull(s);
-        assertNull(s.getId());
+        assertEquals("1", s.getId());
         assertNull(s.getNom());
         assertNull(s.getPosition());
         assertNull(s.getVille());
@@ -323,14 +373,25 @@ class StationJsonConverterTest {
     }
 
     @Test
-    void convertirNullDonneStationVide() {
-        assertNotNull(converter.convertir(null));
+    void convertirSansIdOuNonObjetDonneNull() {
+        assertNull(converter.convertir(null));
+        assertNull(converter.convertir(json("{}")));
+        assertNull(converter.convertir(json("{\"id\": null, \"ville\": \"Rennes\"}")));
+        assertNull(converter.convertir(json("[1, 2]")));
+    }
+
+    @Test
+    void listesDeLaStationNonModifiables() {
+        Station s = station("35200008");
+        assertThrows(UnsupportedOperationException.class, () -> s.getCarburants().clear());
+        assertThrows(UnsupportedOperationException.class, () -> s.getServices().clear());
+        assertThrows(UnsupportedOperationException.class, () -> s.getHoraires().clear());
     }
 
     // 14
     @Test
     void valeursMalFormeesSansException() {
-        Station s = converter.convertir(json("{"
+        Station s = converter.convertir(avecId("{"
                 + "\"id\": 42,"
                 + "\"geom\": {\"lat\": \"abc\", \"lon\": null},"
                 + "\"latitude\": \"pas un nombre\", \"longitude\": \"-165400\","
@@ -372,8 +433,9 @@ class StationJsonConverterTest {
     }
 
     @Test
-    void elementsNonObjetsIgnores() {
-        List<Station> stations = converter.convertirListe(json("{\"results\": [null, 3, {\"id\": 7}]}"));
+    void elementsNonObjetsEtStationsSansIdIgnores() {
+        List<Station> stations = converter.convertirListe(json(
+                "{\"results\": [null, 3, {\"id\": 7}, {\"ville\": \"Rennes\"}, {\"id\": \"\"}]}"));
         assertEquals(1, stations.size());
         assertEquals("7", stations.get(0).getId());
     }

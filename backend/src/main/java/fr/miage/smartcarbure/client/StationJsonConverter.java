@@ -1,6 +1,5 @@
 package fr.miage.smartcarbure.client;
 
-import fr.miage.smartcarbure.model.Carburant;
 import fr.miage.smartcarbure.model.Departement;
 import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.Position;
@@ -8,9 +7,10 @@ import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Region;
 import fr.miage.smartcarbure.model.Service;
 import fr.miage.smartcarbure.model.Station;
-import fr.miage.smartcarbure.model.TypeEmplacement;
-import fr.miage.smartcarbure.model.TypeRupture;
 import fr.miage.smartcarbure.model.Ville;
+import fr.miage.smartcarbure.model.enums.Carburant;
+import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import fr.miage.smartcarbure.model.enums.TypeRupture;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,7 +32,9 @@ import tools.jackson.databind.json.JsonMapper;
  * Seuls les horaires sont lus dans la chaîne JSON « horaires ».</p>
  *
  * <p>Aucune valeur absente, null ou mal formée ne fait planter la conversion :
- * elle donne null, false ou une liste vide.</p>
+ * elle donne null, false ou une liste vide. Quand un champ obligatoire d'un objet du modèle
+ * manque (par exemple une région sans code), l'objet vaut null. Une station sans identifiant
+ * est ignorée.</p>
  *
  * <p>Cette classe ne fait aucun appel HTTP (voir CarburantApiClient).</p>
  */
@@ -44,7 +46,7 @@ public class StationJsonConverter {
 
     private final JsonMapper jsonMapper = JsonMapper.builder().build();
 
-    /** Convertit la réponse complète de l'API : lit le tableau "results". */
+    /** Convertit la réponse complète de l'API : lit le tableau "results". Les stations sans identifiant sont ignorées. */
     public List<Station> convertirListe(JsonNode reponse) {
         List<Station> stations = new ArrayList<>();
         if (reponse == null) {
@@ -55,29 +57,37 @@ public class StationJsonConverter {
             return stations;
         }
         for (JsonNode enregistrement : resultats) {
-            if (enregistrement != null && enregistrement.isObject()) {
-                stations.add(convertir(enregistrement));
+            Station station = convertir(enregistrement);
+            if (station != null) {
+                stations.add(station);
             }
         }
         return stations;
     }
 
-    /** Convertit un enregistrement de l'API en station. Renvoie toujours une station, même pour {}. */
+    /**
+     * Convertit un enregistrement de l'API en station.
+     * Renvoie null si l'enregistrement n'est pas un objet JSON ou s'il n'a pas d'identifiant.
+     */
     public Station convertir(JsonNode enregistrement) {
-        Station station = new Station();
         if (enregistrement == null || !enregistrement.isObject()) {
-            return station;
+            return null;
         }
-        station.setId(texte(enregistrement, "id"));
+        String id = texte(enregistrement, "id");
+        if (id == null) {
+            return null;
+        }
         // L'API ne fournit pas de nom de station : le nom reste null.
-        station.setPosition(lirePosition(enregistrement));
-        station.setVille(lireVille(enregistrement));
-        station.setEmplacement(lireEmplacement(texte(enregistrement, "pop")));
-        station.setAutomate24h("Oui".equalsIgnoreCase(texte(enregistrement, "horaires_automate_24_24")));
-        station.setHoraires(lireHoraires(enregistrement));
-        station.setServices(lireServices(enregistrement));
-        station.setCarburants(lireCarburants(enregistrement));
-        return station;
+        return Station.builder()
+                .id(id)
+                .position(lirePosition(enregistrement))
+                .ville(lireVille(enregistrement))
+                .emplacement(lireEmplacement(texte(enregistrement, "pop")))
+                .automate24h("Oui".equalsIgnoreCase(texte(enregistrement, "horaires_automate_24_24")))
+                .horaires(lireHoraires(enregistrement))
+                .services(lireServices(enregistrement))
+                .carburants(lireCarburants(enregistrement))
+                .build();
     }
 
     /**
@@ -113,31 +123,34 @@ public class StationJsonConverter {
         return new Position(latitude, longitude, adresse);
     }
 
-    /** Construit la chaîne Ville → Departement → Region. */
+    /**
+     * Construit la chaîne Ville → Departement → Region.
+     * Null seulement s'il n'y a ni nom de ville ni code postal (le département est alors perdu).
+     */
     private Ville lireVille(JsonNode enregistrement) {
-        Departement departement = lireDepartement(enregistrement);
         String nom = texte(enregistrement, "ville");
         String codePostal = texte(enregistrement, "cp");
-        if (nom == null && codePostal == null && departement == null) {
+        if (nom == null && codePostal == null) {
             return null;
         }
-        return new Ville(nom, codePostal, departement);
+        return new Ville(nom, codePostal, lireDepartement(enregistrement));
     }
 
+    /** Null si le code ou le nom du département manque ; la région peut être null. */
     private Departement lireDepartement(JsonNode enregistrement) {
-        Region region = lireRegion(enregistrement);
         String code = texte(enregistrement, "code_departement");
         String nom = texte(enregistrement, "departement");
-        if (code == null && nom == null && region == null) {
+        if (code == null || nom == null) {
             return null;
         }
-        return new Departement(code, nom, region);
+        return new Departement(code, nom, lireRegion(enregistrement));
     }
 
+    /** Null si le code ou le nom de la région manque. */
     private Region lireRegion(JsonNode enregistrement) {
         String code = texte(enregistrement, "code_region");
         String nom = texte(enregistrement, "region");
-        if (code == null && nom == null) {
+        if (code == null || nom == null) {
             return null;
         }
         return new Region(code, nom);
@@ -255,7 +268,14 @@ public class StationJsonConverter {
         if (prix == null && !enRupture) {
             return null;
         }
-        return new PrixCarburant(carburant, prix, dateMaj, !enRupture, typeRupture(typeRuptureBrut), debutRupture);
+        return PrixCarburant.builder()
+                .carburant(carburant)
+                .prix(prix)
+                .dateMaj(dateMaj)
+                .disponible(!enRupture)
+                .typeRupture(typeRupture(typeRuptureBrut))
+                .debutRupture(debutRupture)
+                .build();
     }
 
     // ------------------------------------------------------------------

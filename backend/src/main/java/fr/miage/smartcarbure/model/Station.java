@@ -1,34 +1,42 @@
 package fr.miage.smartcarbure.model;
 
-import java.util.ArrayList;
+import fr.miage.smartcarbure.model.enums.TypeEmplacement;
 import java.util.List;
 
 /**
  * Point de vente de carburant lu depuis l'API Prix des carburants.
  * Une station est rattachée à une ville, elle-même rattachée à un département puis à une région.
- * Le nom vaut toujours null pour l'instant : l'API ne fournit pas de nom de station.
+ * L'identifiant est obligatoire. Le nom vaut toujours null pour l'instant : l'API ne fournit pas de nom de station.
+ * Les listes (horaires, services, carburants) ne sont jamais null et ne sont pas modifiables.
+ *
+ * <p>Création : {@code Station.builder().id("35200008").position(p).ville(v).build()}</p>
  */
 public class Station {
 
-    private String id;
-    private String nom;
-    private Position position;
-    private Ville ville;
-    private TypeEmplacement emplacement;
-    private boolean automate24h;
-    private List<Horaire> horaires = new ArrayList<>();
-    private List<Service> services = new ArrayList<>();
-    private List<PrixCarburant> carburants = new ArrayList<>();
+    private final String id;
+    private final String nom;
+    private final Position position;
+    private final Ville ville;
+    private final TypeEmplacement emplacement;
+    private final boolean automate24h;
+    private final List<Horaire> horaires;
+    private final List<Service> services;
+    private final List<PrixCarburant> carburants;
 
-    public Station() {
+    private Station(Builder builder) {
+        this.id = builder.id;
+        this.nom = builder.nom;
+        this.position = builder.position;
+        this.ville = builder.ville;
+        this.emplacement = builder.emplacement;
+        this.automate24h = builder.automate24h;
+        this.horaires = List.copyOf(builder.horaires);
+        this.services = List.copyOf(builder.services);
+        this.carburants = List.copyOf(builder.carburants);
     }
 
-    public Station(String id, Position position, Ville ville, TypeEmplacement emplacement, boolean automate24h) {
-        this.id = id;
-        this.position = position;
-        this.ville = ville;
-        this.emplacement = emplacement;
-        this.automate24h = automate24h;
+    public static Builder builder() {
+        return new Builder();
     }
 
     /** Département de la station, en passant par sa ville ; null si un maillon manque. */
@@ -46,72 +54,36 @@ public class Station {
         return id;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getNom() {
         return nom;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
     }
 
     public Position getPosition() {
         return position;
     }
 
-    public void setPosition(Position position) {
-        this.position = position;
-    }
-
     public Ville getVille() {
         return ville;
-    }
-
-    public void setVille(Ville ville) {
-        this.ville = ville;
     }
 
     public TypeEmplacement getEmplacement() {
         return emplacement;
     }
 
-    public void setEmplacement(TypeEmplacement emplacement) {
-        this.emplacement = emplacement;
-    }
-
     public boolean isAutomate24h() {
         return automate24h;
-    }
-
-    public void setAutomate24h(boolean automate24h) {
-        this.automate24h = automate24h;
     }
 
     public List<Horaire> getHoraires() {
         return horaires;
     }
 
-    public void setHoraires(List<Horaire> horaires) {
-        this.horaires = horaires == null ? new ArrayList<>() : horaires;
-    }
-
     public List<Service> getServices() {
         return services;
     }
 
-    public void setServices(List<Service> services) {
-        this.services = services == null ? new ArrayList<>() : services;
-    }
-
     public List<PrixCarburant> getCarburants() {
         return carburants;
-    }
-
-    public void setCarburants(List<PrixCarburant> carburants) {
-        this.carburants = carburants == null ? new ArrayList<>() : carburants;
     }
 
     @Override
@@ -119,5 +91,77 @@ public class Station {
         return "Station{id='" + id + "', nom='" + nom + "', position=" + position + ", ville=" + ville
                 + ", emplacement=" + emplacement + ", automate24h=" + automate24h
                 + ", horaires=" + horaires + ", services=" + services + ", carburants=" + carburants + "}";
+    }
+
+    /** Construit une Station. L'identifiant est obligatoire ; les listes sont vides par défaut. */
+    public static class Builder {
+
+        private String id;
+        private String nom;
+        private Position position;
+        private Ville ville;
+        private TypeEmplacement emplacement;
+        private boolean automate24h;
+        private List<Horaire> horaires = List.of();
+        private List<Service> services = List.of();
+        private List<PrixCarburant> carburants = List.of();
+
+        private Builder() {
+        }
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder nom(String nom) {
+            this.nom = nom;
+            return this;
+        }
+
+        public Builder position(Position position) {
+            this.position = position;
+            return this;
+        }
+
+        public Builder ville(Ville ville) {
+            this.ville = ville;
+            return this;
+        }
+
+        public Builder emplacement(TypeEmplacement emplacement) {
+            this.emplacement = emplacement;
+            return this;
+        }
+
+        public Builder automate24h(boolean automate24h) {
+            this.automate24h = automate24h;
+            return this;
+        }
+
+        /** Liste des horaires ; null est traité comme une liste vide. */
+        public Builder horaires(List<Horaire> horaires) {
+            this.horaires = horaires == null ? List.of() : horaires;
+            return this;
+        }
+
+        /** Liste des services ; null est traité comme une liste vide. */
+        public Builder services(List<Service> services) {
+            this.services = services == null ? List.of() : services;
+            return this;
+        }
+
+        /** Liste des carburants ; null est traité comme une liste vide. */
+        public Builder carburants(List<PrixCarburant> carburants) {
+            this.carburants = carburants == null ? List.of() : carburants;
+            return this;
+        }
+
+        public Station build() {
+            if (id == null) {
+                throw new IllegalStateException("L'identifiant est obligatoire pour créer une Station.");
+            }
+            return new Station(this);
+        }
     }
 }

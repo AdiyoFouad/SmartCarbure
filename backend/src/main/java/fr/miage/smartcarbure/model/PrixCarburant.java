@@ -1,81 +1,61 @@
 package fr.miage.smartcarbure.model;
 
+import fr.miage.smartcarbure.model.enums.Carburant;
+import fr.miage.smartcarbure.model.enums.TypeRupture;
 import java.time.LocalDateTime;
 
 /**
  * Classe d'association entre une station et un carburant : prix, date de mise à jour,
  * disponibilité, type et début de rupture.
- * Le prix peut être null (carburant en rupture sans prix connu).
+ * Le carburant est obligatoire. Le prix peut être null (carburant en rupture sans prix connu).
  * Les dates sont à l'heure de Paris (voir StationJsonConverter).
+ *
+ * <p>Création : {@code PrixCarburant.builder().carburant(Carburant.GAZOLE).prix(1.789).build()}</p>
  */
 public class PrixCarburant {
 
-    private Carburant carburant;
-    private Double prix;
-    private LocalDateTime dateMaj;
-    private boolean disponible;
-    private TypeRupture typeRupture;
-    private LocalDateTime debutRupture;
+    private final Carburant carburant;
+    private final Double prix;
+    private final LocalDateTime dateMaj;
+    private final boolean disponible;
+    private final TypeRupture typeRupture;
+    private final LocalDateTime debutRupture;
 
-    public PrixCarburant() {
+    private PrixCarburant(Builder builder) {
+        this.carburant = builder.carburant;
+        this.prix = builder.prix;
+        this.dateMaj = builder.dateMaj;
+        this.disponible = builder.disponible;
+        this.typeRupture = builder.typeRupture;
+        this.debutRupture = builder.debutRupture;
     }
 
-    public PrixCarburant(Carburant carburant, Double prix, LocalDateTime dateMaj,
-                         boolean disponible, TypeRupture typeRupture, LocalDateTime debutRupture) {
-        this.carburant = carburant;
-        this.prix = prix;
-        this.dateMaj = dateMaj;
-        this.disponible = disponible;
-        this.typeRupture = typeRupture;
-        this.debutRupture = debutRupture;
+    public static Builder builder() {
+        return new Builder();
     }
 
     public Carburant getCarburant() {
         return carburant;
     }
 
-    public void setCarburant(Carburant carburant) {
-        this.carburant = carburant;
-    }
-
     public Double getPrix() {
         return prix;
-    }
-
-    public void setPrix(Double prix) {
-        this.prix = prix;
     }
 
     public LocalDateTime getDateMaj() {
         return dateMaj;
     }
 
-    public void setDateMaj(LocalDateTime dateMaj) {
-        this.dateMaj = dateMaj;
-    }
-
     public boolean isDisponible() {
         return disponible;
-    }
-
-    public void setDisponible(boolean disponible) {
-        this.disponible = disponible;
     }
 
     public TypeRupture getTypeRupture() {
         return typeRupture;
     }
 
-    public void setTypeRupture(TypeRupture typeRupture) {
-        this.typeRupture = typeRupture;
-    }
-
     public LocalDateTime getDebutRupture() {
         return debutRupture;
-    }
-
-    public void setDebutRupture(LocalDateTime debutRupture) {
-        this.debutRupture = debutRupture;
     }
 
     @Override
@@ -83,5 +63,56 @@ public class PrixCarburant {
         return "PrixCarburant{carburant=" + carburant + ", prix=" + prix + ", dateMaj=" + dateMaj
                 + ", disponible=" + disponible + ", typeRupture=" + typeRupture
                 + ", debutRupture=" + debutRupture + "}";
+    }
+
+    /** Construit un PrixCarburant. Le carburant est obligatoire ; disponible vaut true par défaut. */
+    public static class Builder {
+
+        private Carburant carburant;
+        private Double prix;
+        private LocalDateTime dateMaj;
+        private boolean disponible = true;
+        private TypeRupture typeRupture;
+        private LocalDateTime debutRupture;
+
+        private Builder() {
+        }
+
+        public Builder carburant(Carburant carburant) {
+            this.carburant = carburant;
+            return this;
+        }
+
+        public Builder prix(Double prix) {
+            this.prix = prix;
+            return this;
+        }
+
+        public Builder dateMaj(LocalDateTime dateMaj) {
+            this.dateMaj = dateMaj;
+            return this;
+        }
+
+        public Builder disponible(boolean disponible) {
+            this.disponible = disponible;
+            return this;
+        }
+
+        public Builder typeRupture(TypeRupture typeRupture) {
+            this.typeRupture = typeRupture;
+            return this;
+        }
+
+        public Builder debutRupture(LocalDateTime debutRupture) {
+            this.debutRupture = debutRupture;
+            return this;
+        }
+
+        public PrixCarburant build() {
+            if (carburant == null) {
+                throw new IllegalStateException("Le carburant est obligatoire pour créer un PrixCarburant.");
+            }
+            return new PrixCarburant(this);
+        }
     }
 }

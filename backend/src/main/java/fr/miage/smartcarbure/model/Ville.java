@@ -1,16 +1,21 @@
 package fr.miage.smartcarbure.model;
 
-/** Ville et code postal auxquels appartient une station ; la ville appartient à un département. */
+import java.util.Objects;
+
+/**
+ * Ville et code postal auxquels appartient une station ; la ville appartient à un département.
+ * Il faut au moins un nom ou un code postal ; le département peut être null.
+ */
 public class Ville {
 
-    private String nom;
-    private String codePostal;
-    private Departement departement;
-
-    public Ville() {
-    }
+    private final String nom;
+    private final String codePostal;
+    private final Departement departement;
 
     public Ville(String nom, String codePostal, Departement departement) {
+        if (nom == null && codePostal == null) {
+            throw new IllegalArgumentException("Une ville doit avoir au moins un nom ou un code postal.");
+        }
         this.nom = nom;
         this.codePostal = codePostal;
         this.departement = departement;
@@ -20,24 +25,30 @@ public class Ville {
         return nom;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
     public String getCodePostal() {
         return codePostal;
-    }
-
-    public void setCodePostal(String codePostal) {
-        this.codePostal = codePostal;
     }
 
     public Departement getDepartement() {
         return departement;
     }
 
-    public void setDepartement(Departement departement) {
-        this.departement = departement;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Ville autre)) {
+            return false;
+        }
+        return Objects.equals(nom, autre.nom)
+                && Objects.equals(codePostal, autre.codePostal)
+                && Objects.equals(departement, autre.departement);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nom, codePostal, departement);
     }
 
     @Override
