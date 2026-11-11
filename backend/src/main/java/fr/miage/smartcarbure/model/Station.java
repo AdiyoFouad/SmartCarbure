@@ -1,6 +1,8 @@
 package fr.miage.smartcarbure.model;
 
-import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import fr.miage.smartcarbure.enums.TypeEmplacement;
+import lombok.Getter;
+
 import java.util.List;
 
 /**
@@ -11,6 +13,7 @@ import java.util.List;
  *
  * <p>Création : {@code Station.builder().id("35200008").position(p).ville(v).build()}</p>
  */
+@Getter
 public class Station {
 
     private final String id;
@@ -20,7 +23,7 @@ public class Station {
     private final TypeEmplacement emplacement;
     private final boolean automate24h;
     private final List<Horaire> horaires;
-    private final List<Service> services;
+    private final List<ServiceStation> services;
     private final List<PrixCarburant> carburants;
 
     private Station(Builder builder) {
@@ -50,42 +53,6 @@ public class Station {
         return departement == null ? null : departement.getRegion();
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public Position getPosition() {
-        return position;
-    }
-
-    public Ville getVille() {
-        return ville;
-    }
-
-    public TypeEmplacement getEmplacement() {
-        return emplacement;
-    }
-
-    public boolean isAutomate24h() {
-        return automate24h;
-    }
-
-    public List<Horaire> getHoraires() {
-        return horaires;
-    }
-
-    public List<Service> getServices() {
-        return services;
-    }
-
-    public List<PrixCarburant> getCarburants() {
-        return carburants;
-    }
-
     @Override
     public String toString() {
         return "Station{id='" + id + "', nom='" + nom + "', position=" + position + ", ville=" + ville
@@ -103,7 +70,7 @@ public class Station {
         private TypeEmplacement emplacement;
         private boolean automate24h;
         private List<Horaire> horaires = List.of();
-        private List<Service> services = List.of();
+        private List<ServiceStation> services = List.of();
         private List<PrixCarburant> carburants = List.of();
 
         private Builder() {
@@ -146,7 +113,7 @@ public class Station {
         }
 
         /** Liste des services ; null est traité comme une liste vide. */
-        public Builder services(List<Service> services) {
+        public Builder services(List<ServiceStation> services) {
             this.services = services == null ? List.of() : services;
             return this;
         }

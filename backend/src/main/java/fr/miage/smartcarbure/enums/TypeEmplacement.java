@@ -1,4 +1,4 @@
-package fr.miage.smartcarbure.model.enums;
+package fr.miage.smartcarbure.enums;
 
 /** Emplacement d'une station : sur route ou sur autoroute (champ pop de l'API : R ou A). */
 public enum TypeEmplacement {

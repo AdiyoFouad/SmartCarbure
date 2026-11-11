@@ -1,5 +1,7 @@
 package fr.miage.smartcarbure.model;
 
+import lombok.Getter;
+
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -12,6 +14,7 @@ import java.util.Objects;
  *   <li>Plusieurs plages dans la journée : on garde la première ouverture et la dernière fermeture.</li>
  * </ul>
  */
+@Getter
 public class Horaire {
 
     private final DayOfWeek jour;
@@ -24,22 +27,6 @@ public class Horaire {
         this.ferme = ferme;
         this.ouverture = ouverture;
         this.fermeture = fermeture;
-    }
-
-    public DayOfWeek getJour() {
-        return jour;
-    }
-
-    public boolean isFerme() {
-        return ferme;
-    }
-
-    public LocalTime getOuverture() {
-        return ouverture;
-    }
-
-    public LocalTime getFermeture() {
-        return fermeture;
     }
 
     @Override

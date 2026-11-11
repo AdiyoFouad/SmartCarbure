@@ -5,12 +5,12 @@ import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.Position;
 import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Region;
-import fr.miage.smartcarbure.model.Service;
+import fr.miage.smartcarbure.model.ServiceStation;
 import fr.miage.smartcarbure.model.Station;
 import fr.miage.smartcarbure.model.Ville;
-import fr.miage.smartcarbure.model.enums.Carburant;
-import fr.miage.smartcarbure.model.enums.TypeEmplacement;
-import fr.miage.smartcarbure.model.enums.TypeRupture;
+import fr.miage.smartcarbure.enums.Carburant;
+import fr.miage.smartcarbure.enums.TypeEmplacement;
+import fr.miage.smartcarbure.enums.TypeRupture;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -168,12 +168,12 @@ public class StationJsonConverter {
     }
 
     /** Lit le tableau à plat "services_service" (une chaîne seule est aussi acceptée). */
-    private List<Service> lireServices(JsonNode enregistrement) {
-        List<Service> services = new ArrayList<>();
+    private List<ServiceStation> lireServices(JsonNode enregistrement) {
+        List<ServiceStation> services = new ArrayList<>();
         for (JsonNode element : enTableau(enregistrement.get("services_service"))) {
             String libelle = texte(element);
             if (libelle != null) {
-                services.add(new Service(libelle));
+                services.add(new ServiceStation(libelle));
             }
         }
         return services;

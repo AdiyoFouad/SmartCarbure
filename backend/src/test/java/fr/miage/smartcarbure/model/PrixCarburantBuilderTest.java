@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.miage.smartcarbure.model.enums.Carburant;
-import fr.miage.smartcarbure.model.enums.TypeRupture;
+import fr.miage.smartcarbure.enums.Carburant;
+import fr.miage.smartcarbure.enums.TypeRupture;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 

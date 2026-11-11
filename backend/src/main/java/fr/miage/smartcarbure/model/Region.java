@@ -1,8 +1,11 @@
 package fr.miage.smartcarbure.model;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /** Région (code et nom) qui regroupe des départements. Le code et le nom sont obligatoires. */
+@Getter
 public class Region {
 
     private final String code;
@@ -11,14 +14,6 @@ public class Region {
     public Region(String code, String nom) {
         this.code = Objects.requireNonNull(code, "Le code de la région est obligatoire.");
         this.nom = Objects.requireNonNull(nom, "Le nom de la région est obligatoire.");
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getNom() {
-        return nom;
     }
 
     @Override
