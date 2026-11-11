@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.miage.smartcarbure.model.enums.Carburant;
-import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import fr.miage.smartcarbure.enums.Carburant;
+import fr.miage.smartcarbure.enums.TypeEmplacement;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;

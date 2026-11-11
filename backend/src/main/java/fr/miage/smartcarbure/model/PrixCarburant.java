@@ -1,7 +1,7 @@
 package fr.miage.smartcarbure.model;
 
-import fr.miage.smartcarbure.model.enums.Carburant;
-import fr.miage.smartcarbure.model.enums.TypeRupture;
+import fr.miage.smartcarbure.enums.Carburant;
+import fr.miage.smartcarbure.enums.TypeRupture;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

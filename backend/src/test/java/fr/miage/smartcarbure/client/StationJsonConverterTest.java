@@ -7,13 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import fr.miage.smartcarbure.model.enums.Carburant;
+import fr.miage.smartcarbure.enums.Carburant;
 import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Service;
 import fr.miage.smartcarbure.model.Station;
-import fr.miage.smartcarbure.model.enums.TypeEmplacement;
-import fr.miage.smartcarbure.model.enums.TypeRupture;
+import fr.miage.smartcarbure.enums.TypeEmplacement;
+import fr.miage.smartcarbure.enums.TypeRupture;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.DayOfWeek;

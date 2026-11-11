@@ -1,4 +1,4 @@
-package fr.miage.smartcarbure.model.enums;
+package fr.miage.smartcarbure.enums;
 
 import lombok.Getter;
 

@@ -1,6 +1,6 @@
 package fr.miage.smartcarbure.model;
 
-import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import fr.miage.smartcarbure.enums.TypeEmplacement;
 import lombok.Getter;
 
 import java.util.List;
