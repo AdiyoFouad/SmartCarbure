@@ -1,11 +1,14 @@
 package fr.miage.smartcarbure.model;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * Coordonnées GPS (latitude, longitude en degrés décimaux) et adresse d'une station ou d'un point de trajet.
  * Il faut au moins une adresse ou les deux coordonnées. Une coordonnée seule est refusée.
  */
+@Getter
 public class Position {
 
     private final Double latitude;
@@ -22,18 +25,6 @@ public class Position {
         this.latitude = latitude;
         this.longitude = longitude;
         this.adresse = adresse;
-    }
-
-    public Double getLatitude() {
-        return latitude;
-    }
-
-    public Double getLongitude() {
-        return longitude;
-    }
-
-    public String getAdresse() {
-        return adresse;
     }
 
     @Override

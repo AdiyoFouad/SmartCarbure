@@ -1,11 +1,14 @@
 package fr.miage.smartcarbure.model;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /**
  * Ville et code postal auxquels appartient une station ; la ville appartient à un département.
  * Il faut au moins un nom ou un code postal ; le département peut être null.
  */
+@Getter
 public class Ville {
 
     private final String nom;
@@ -19,18 +22,6 @@ public class Ville {
         this.nom = nom;
         this.codePostal = codePostal;
         this.departement = departement;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public String getCodePostal() {
-        return codePostal;
-    }
-
-    public Departement getDepartement() {
-        return departement;
     }
 
     @Override

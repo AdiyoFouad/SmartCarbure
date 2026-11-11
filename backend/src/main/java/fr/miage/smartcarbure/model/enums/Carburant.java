@@ -1,6 +1,9 @@
 package fr.miage.smartcarbure.model.enums;
 
+import lombok.Getter;
+
 /** Type de carburant (Gazole, SP95, SP98, E10, E85, GPLc). */
+@Getter
 public enum Carburant {
 
     GAZOLE("Gazole"),
@@ -15,10 +18,6 @@ public enum Carburant {
 
     Carburant(String libelle) {
         this.libelle = libelle;
-    }
-
-    public String getLibelle() {
-        return libelle;
     }
 
     /**

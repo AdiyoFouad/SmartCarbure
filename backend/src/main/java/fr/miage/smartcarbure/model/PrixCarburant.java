@@ -2,6 +2,8 @@ package fr.miage.smartcarbure.model;
 
 import fr.miage.smartcarbure.model.enums.Carburant;
 import fr.miage.smartcarbure.model.enums.TypeRupture;
+import lombok.Getter;
+
 import java.time.LocalDateTime;
 
 /**
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
  *
  * <p>Création : {@code PrixCarburant.builder().carburant(Carburant.GAZOLE).prix(1.789).build()}</p>
  */
+@Getter
 public class PrixCarburant {
 
     private final Carburant carburant;
@@ -32,30 +35,6 @@ public class PrixCarburant {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    public Carburant getCarburant() {
-        return carburant;
-    }
-
-    public Double getPrix() {
-        return prix;
-    }
-
-    public LocalDateTime getDateMaj() {
-        return dateMaj;
-    }
-
-    public boolean isDisponible() {
-        return disponible;
-    }
-
-    public TypeRupture getTypeRupture() {
-        return typeRupture;
-    }
-
-    public LocalDateTime getDebutRupture() {
-        return debutRupture;
     }
 
     @Override

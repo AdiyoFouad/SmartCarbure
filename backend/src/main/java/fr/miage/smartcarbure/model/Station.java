@@ -1,6 +1,8 @@
 package fr.miage.smartcarbure.model;
 
 import fr.miage.smartcarbure.model.enums.TypeEmplacement;
+import lombok.Getter;
+
 import java.util.List;
 
 /**
@@ -11,6 +13,7 @@ import java.util.List;
  *
  * <p>Création : {@code Station.builder().id("35200008").position(p).ville(v).build()}</p>
  */
+@Getter
 public class Station {
 
     private final String id;
@@ -48,42 +51,6 @@ public class Station {
     public Region getRegion() {
         Departement departement = getDepartement();
         return departement == null ? null : departement.getRegion();
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getNom() {
-        return nom;
-    }
-
-    public Position getPosition() {
-        return position;
-    }
-
-    public Ville getVille() {
-        return ville;
-    }
-
-    public TypeEmplacement getEmplacement() {
-        return emplacement;
-    }
-
-    public boolean isAutomate24h() {
-        return automate24h;
-    }
-
-    public List<Horaire> getHoraires() {
-        return horaires;
-    }
-
-    public List<Service> getServices() {
-        return services;
-    }
-
-    public List<PrixCarburant> getCarburants() {
-        return carburants;
     }
 
     @Override

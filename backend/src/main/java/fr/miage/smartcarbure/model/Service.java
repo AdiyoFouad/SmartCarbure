@@ -1,18 +1,17 @@
 package fr.miage.smartcarbure.model;
 
+import lombok.Getter;
+
 import java.util.Objects;
 
 /** Service proposé par une station (lavage, boutique, gonflage...), avec le libellé fourni par l'API. */
+@Getter
 public class Service {
 
     private final String nom;
 
     public Service(String nom) {
         this.nom = Objects.requireNonNull(nom, "Le nom du service est obligatoire.");
-    }
-
-    public String getNom() {
-        return nom;
     }
 
     @Override
