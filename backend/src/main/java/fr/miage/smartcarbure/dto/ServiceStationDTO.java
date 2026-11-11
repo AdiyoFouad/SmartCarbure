@@ -3,6 +3,6 @@ package fr.miage.smartcarbure.dto;
 import lombok.Data;
 
 @Data
-public class ServiceDTO {
+public class ServiceStationDTO {
     private String nom;
 }

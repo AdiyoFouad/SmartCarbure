@@ -20,7 +20,7 @@ import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.Position;
 import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Region;
-import fr.miage.smartcarbure.model.Service;
+import fr.miage.smartcarbure.model.ServiceStation;
 import fr.miage.smartcarbure.model.Station;
 import fr.miage.smartcarbure.model.Ville;
 
@@ -30,7 +30,7 @@ class StationMapperTest {
     private final VilleMapper villeMapper = new VilleMapper(
             new DepartementMapper(new RegionMapper()));
     private final HoraireMapper horaireMapper = new HoraireMapper();
-    private final ServiceMapper serviceMapper = new ServiceMapper();
+    private final ServiceStationMapper serviceMapper = new ServiceStationMapper();
     private final PrixCarburantMapper prixCarburantMapper = new PrixCarburantMapper();
     private final StationMapper mapper = new StationMapper(positionMapper, villeMapper,
             horaireMapper, serviceMapper, prixCarburantMapper);
@@ -47,7 +47,7 @@ class StationMapperTest {
                 .automate24h(true)
                 .horaires(List.of(new Horaire(DayOfWeek.MONDAY, false,
                         LocalTime.of(8, 0), LocalTime.of(20, 0))))
-                .services(List.of(new Service("Lavage")))
+                .services(List.of(new ServiceStation("Lavage")))
                 .carburants(List.of(PrixCarburant.builder()
                         .carburant(Carburant.GAZOLE)
                         .prix(1.789)
@@ -84,7 +84,7 @@ class StationMapperTest {
         dto.setAutomate24h(true);
         dto.setHoraires(List.of(horaireMapper.toDTO(
                 new Horaire(DayOfWeek.MONDAY, false, LocalTime.of(8, 0), LocalTime.of(20, 0)))));
-        dto.setServices(List.of(serviceMapper.toDTO(new Service("Lavage"))));
+        dto.setServices(List.of(serviceMapper.toDTO(new ServiceStation("Lavage"))));
         dto.setCarburants(List.of(prixCarburantMapper.toDTO(PrixCarburant.builder()
                 .carburant(Carburant.GAZOLE)
                 .prix(1.789)

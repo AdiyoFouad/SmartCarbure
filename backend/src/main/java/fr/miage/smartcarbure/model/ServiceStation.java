@@ -6,11 +6,11 @@ import java.util.Objects;
 
 /** Service proposé par une station (lavage, boutique, gonflage...), avec le libellé fourni par l'API. */
 @Getter
-public class Service {
+public class ServiceStation {
 
     private final String nom;
 
-    public Service(String nom) {
+    public ServiceStation(String nom) {
         this.nom = Objects.requireNonNull(nom, "Le nom du service est obligatoire.");
     }
 
@@ -19,7 +19,7 @@ public class Service {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Service autre)) {
+        if (!(o instanceof ServiceStation autre)) {
             return false;
         }
         return nom.equals(autre.nom);

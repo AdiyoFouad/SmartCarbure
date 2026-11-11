@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import fr.miage.smartcarbure.enums.Carburant;
 import fr.miage.smartcarbure.model.Horaire;
 import fr.miage.smartcarbure.model.PrixCarburant;
-import fr.miage.smartcarbure.model.Service;
+import fr.miage.smartcarbure.model.ServiceStation;
 import fr.miage.smartcarbure.model.Station;
 import fr.miage.smartcarbure.enums.TypeEmplacement;
 import fr.miage.smartcarbure.enums.TypeRupture;
@@ -289,10 +289,10 @@ class StationJsonConverterTest {
     // 11
     @Test
     void servicesPlusieursOuUnSeul() {
-        List<String> plusieurs = station("35000013").getServices().stream().map(Service::getNom).toList();
+        List<String> plusieurs = station("35000013").getServices().stream().map(ServiceStation::getNom).toList();
         assertEquals(List.of("Lavage manuel", "Station de gonflage", "Automate CB 24/24"), plusieurs);
 
-        List<Service> unSeul = station("35000012").getServices();
+        List<ServiceStation> unSeul = station("35000012").getServices();
         assertEquals(1, unSeul.size());
         assertEquals("Automate CB 24/24", unSeul.get(0).getNom());
 

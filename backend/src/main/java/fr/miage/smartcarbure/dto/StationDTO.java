@@ -14,7 +14,7 @@ public class StationDTO {
 	private TypeEmplacement emplacement;
     private boolean automate24h;
 	private List<HoraireDTO> horaires;
-	private List<ServiceDTO> services;
+	private List<ServiceStationDTO> services;
 	private List<PrixCarburantDTO> carburants;
 	private Double distanceKm;
 }

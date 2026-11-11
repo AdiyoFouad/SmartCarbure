@@ -23,7 +23,7 @@ public class Station {
     private final TypeEmplacement emplacement;
     private final boolean automate24h;
     private final List<Horaire> horaires;
-    private final List<Service> services;
+    private final List<ServiceStation> services;
     private final List<PrixCarburant> carburants;
 
     private Station(Builder builder) {
@@ -70,7 +70,7 @@ public class Station {
         private TypeEmplacement emplacement;
         private boolean automate24h;
         private List<Horaire> horaires = List.of();
-        private List<Service> services = List.of();
+        private List<ServiceStation> services = List.of();
         private List<PrixCarburant> carburants = List.of();
 
         private Builder() {
@@ -113,7 +113,7 @@ public class Station {
         }
 
         /** Liste des services ; null est traité comme une liste vide. */
-        public Builder services(List<Service> services) {
+        public Builder services(List<ServiceStation> services) {
             this.services = services == null ? List.of() : services;
             return this;
         }

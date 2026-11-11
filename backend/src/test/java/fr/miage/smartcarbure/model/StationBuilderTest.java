@@ -50,15 +50,15 @@ class StationBuilderTest {
 
     @Test
     void listesNonModifiablesEtCopiees() {
-        List<Service> services = new ArrayList<>(List.of(new Service("Lavage")));
+        List<ServiceStation> services = new ArrayList<>(List.of(new ServiceStation("Lavage")));
         Station s = Station.builder().id("1").services(services).build();
 
         // Modifier la liste d'origine ne change pas la station
-        services.add(new Service("Boutique"));
+        services.add(new ServiceStation("Boutique"));
         assertEquals(1, s.getServices().size());
 
         // La liste renvoyée ne peut pas être modifiée
-        assertThrows(UnsupportedOperationException.class, () -> s.getServices().add(new Service("Gonflage")));
+        assertThrows(UnsupportedOperationException.class, () -> s.getServices().add(new ServiceStation("Gonflage")));
         assertThrows(UnsupportedOperationException.class, () -> s.getHoraires().clear());
         assertThrows(UnsupportedOperationException.class, () -> s.getCarburants().clear());
     }
@@ -80,7 +80,7 @@ class StationBuilderTest {
                 .emplacement(TypeEmplacement.AUTOROUTE)
                 .automate24h(true)
                 .horaires(List.of(lundi))
-                .services(List.of(new Service("Lavage")))
+                .services(List.of(new ServiceStation("Lavage")))
                 .carburants(List.of(gazole))
                 .build();
 
@@ -91,7 +91,7 @@ class StationBuilderTest {
         assertEquals(TypeEmplacement.AUTOROUTE, s.getEmplacement());
         assertTrue(s.isAutomate24h());
         assertEquals(List.of(lundi), s.getHoraires());
-        assertEquals(List.of(new Service("Lavage")), s.getServices());
+        assertEquals(List.of(new ServiceStation("Lavage")), s.getServices());
         assertSame(gazole, s.getCarburants().get(0));
         assertSame(departement, s.getDepartement());
         assertSame(region, s.getRegion());

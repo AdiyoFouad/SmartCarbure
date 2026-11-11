@@ -39,7 +39,7 @@ class ModeleConstructeursTest {
 
     @Test
     void serviceNomObligatoire() {
-        assertThrows(NullPointerException.class, () -> new Service(null));
+        assertThrows(NullPointerException.class, () -> new ServiceStation(null));
     }
 
     @Test
@@ -75,8 +75,8 @@ class ModeleConstructeursTest {
         assertEquals(v1.hashCode(), new Ville("Rennes", "35000", d1).hashCode());
         assertNotEquals(v1, new Ville("Rennes", "35200", d1));
 
-        assertEquals(new Service("Lavage"), new Service("Lavage"));
-        assertNotEquals(new Service("Lavage"), new Service("Boutique"));
+        assertEquals(new ServiceStation("Lavage"), new ServiceStation("Lavage"));
+        assertNotEquals(new ServiceStation("Lavage"), new ServiceStation("Boutique"));
 
         assertEquals(new Position(48.1, -1.6, "A"), new Position(48.1, -1.6, "A"));
         assertNotEquals(new Position(48.1, -1.6, "A"), new Position(48.1, -1.6, "B"));

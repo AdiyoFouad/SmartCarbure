@@ -13,11 +13,11 @@ public class StationMapper {
     private final PositionMapper positionMapper;
     private final VilleMapper villeMapper;
     private final HoraireMapper horaireMapper;
-    private final ServiceMapper serviceMapper;
+    private final ServiceStationMapper serviceMapper;
     private final PrixCarburantMapper prixCarburantMapper;
 
     public StationMapper(PositionMapper positionMapper, VilleMapper villeMapper,
-                         HoraireMapper horaireMapper, ServiceMapper serviceMapper,
+                         HoraireMapper horaireMapper, ServiceStationMapper serviceMapper,
                          PrixCarburantMapper prixCarburantMapper) {
         this.positionMapper = positionMapper;
         this.villeMapper = villeMapper;
