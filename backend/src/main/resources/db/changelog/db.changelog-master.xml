@@ -13,8 +13,8 @@
     </changeSet>
     -->
 
-    <changeSet id="001-create-utilisateur-table" author="sf.diarra">
-        <sqlFile path="db/changelog/sql/001-create-utilisateur.sql"
+    <changeSet id="L4-01-create-utilisateur-table" author="sf.diarra">
+        <sqlFile path="db/changelog/sql/L4-01-create-utilisateur.sql"
                  splitStatements="true"
                  endDelimiter=";"/>
     </changeSet>
