@@ -3,7 +3,7 @@ package fr.miage.smartcarbure.service;
 import fr.miage.smartcarbure.dto.EconomieResponse;
 import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Station;
-import fr.miage.smartcarbure.model.enums.Carburant;
+import fr.miage.smartcarbure.enums.Carburant;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.LinkedHashMap;
