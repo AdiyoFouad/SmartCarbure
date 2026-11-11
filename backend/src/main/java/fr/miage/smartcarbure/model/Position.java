@@ -6,7 +6,8 @@ import java.util.Objects;
 
 /**
  * Coordonnées GPS (latitude, longitude en degrés décimaux) et adresse d'une station ou d'un point de trajet.
- * Il faut au moins une adresse ou les deux coordonnées. Une coordonnée seule est refusée.
+ * Il faut au moins une adresse ou les deux coordonnées. Une coordonnée seule ou des coordonnées
+ * hors limites GPS sont refusées.
  */
 @Getter
 public class Position {
@@ -18,6 +19,10 @@ public class Position {
     public Position(Double latitude, Double longitude, String adresse) {
         if ((latitude == null) != (longitude == null)) {
             throw new IllegalArgumentException("La latitude et la longitude doivent être fournies ensemble.");
+        }
+        if (latitude != null && (!Double.isFinite(latitude) || !Double.isFinite(longitude)
+                || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)) {
+            throw new IllegalArgumentException("Les coordonnées GPS doivent être finies et dans leurs limites.");
         }
         if (latitude == null && adresse == null) {
             throw new IllegalArgumentException("Une position doit avoir au moins une adresse ou des coordonnées.");
