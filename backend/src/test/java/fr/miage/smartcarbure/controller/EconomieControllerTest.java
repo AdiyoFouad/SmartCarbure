@@ -26,9 +26,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 class EconomieControllerTest {
 
+    /** Faux service : on teste seulement le contrôleur, pas le calcul. */
     private final EconomieService service = mock(EconomieService.class);
     private MockMvc mockMvc;
 
+    /** MockMvc sans Spring Boot, avec le GlobalExceptionHandler pour obtenir les vraies réponses d'erreur. */
     @BeforeEach
     void creerMockMvc() {
         mockMvc = MockMvcBuilders.standaloneSetup(new EconomieController(service))
@@ -36,6 +38,7 @@ class EconomieControllerTest {
                 .build();
     }
 
+    /** Cas normal : 200 avec le JSON du contrat (prixStation, prixMoyenLocal, litres, montant). */
     @Test
     void renvoieLeCalculAuFormatDuContrat() throws Exception {
         when(service.calculerPourStation("35000001", Carburant.GAZOLE, 50))
@@ -53,6 +56,7 @@ class EconomieControllerTest {
                 .andExpect(jsonPath("$.montant").value(1.10));
     }
 
+    /** Station inconnue : 404 avec le corps { statut, message } du contrat. */
     @Test
     void stationInconnueDonne404() throws Exception {
         when(service.calculerPourStation("99999999", Carburant.GAZOLE, 50))
@@ -67,6 +71,7 @@ class EconomieControllerTest {
                 .andExpect(jsonPath("$.message").value("Station introuvable : 99999999."));
     }
 
+    /** Volume refusé par le service (IllegalArgumentException) : 400. */
     @Test
     void volumeRefuseParLeServiceDonne400() throws Exception {
         when(service.calculerPourStation("35000001", Carburant.GAZOLE, 0))
@@ -80,6 +85,7 @@ class EconomieControllerTest {
                 .andExpect(jsonPath("$.statut").value(400));
     }
 
+    /** Paramètre litres absent : Spring renvoie 400 avant même d'appeler le service. */
     @Test
     void parametreManquantDonne400SansAppelerLeService() throws Exception {
         mockMvc.perform(get("/api/economie")
@@ -92,6 +98,7 @@ class EconomieControllerTest {
         verifyNoInteractions(service);
     }
 
+    /** Carburant inconnu (KEROSENE) : 400 avec la liste des carburants acceptés, sans appeler le service. */
     @Test
     void carburantInconnuDonne400SansAppelerLeService() throws Exception {
         mockMvc.perform(get("/api/economie")
@@ -104,6 +111,7 @@ class EconomieControllerTest {
         verifyNoInteractions(service);
     }
 
+    /** API Prix des carburants en panne : 503. */
     @Test
     void apiIndisponibleDonne503() throws Exception {
         when(service.calculerPourStation("35000001", Carburant.GAZOLE, 50))

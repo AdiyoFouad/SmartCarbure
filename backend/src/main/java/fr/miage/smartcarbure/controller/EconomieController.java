@@ -21,13 +21,22 @@ import fr.miage.smartcarbure.service.EconomieService;
 @RequestMapping("/api/economie")
 public class EconomieController {
 
+    /** Service qui fait le calcul : le contrôleur se contente de lire les paramètres et de renvoyer le résultat. */
     private final EconomieService economieService;
 
+    /** Injection par constructeur : Spring fournit l'EconomieService. */
     public EconomieController(EconomieService economieService) {
         this.economieService = economieService;
     }
 
-    /** Économie (ou surcoût) d'un plein dans la station donnée, par rapport au prix moyen de sa ville. */
+    /**
+     * Économie (ou surcoût) d'un plein dans la station donnée, par rapport au prix moyen de sa ville.
+     *
+     * @param idStation identifiant de la station (par exemple 35000001)
+     * @param carburant code du carburant (GAZOLE, SP95…) ; Spring convertit le texte en enum, sinon 400
+     * @param litres    volume du plein ; un texte non numérique donne un 400
+     * @return le résultat du calcul, converti en JSON par Spring
+     */
     @GetMapping
     public EconomieResponse calculer(@RequestParam("idStation") String idStation,
                                      @RequestParam("carburant") Carburant carburant,

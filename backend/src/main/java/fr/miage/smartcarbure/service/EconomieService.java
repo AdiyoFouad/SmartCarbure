@@ -43,8 +43,10 @@ public class EconomieService {
     /** Les montants sont arrondis au centime (1.10). */
     private static final int DECIMALES_MONTANT = 2;
 
+    /** Client de l'API Prix des carburants, utilisé pour récupérer la station et les stations de sa ville. */
     private final CarburantApiClient carburantApiClient;
 
+    /** Injection par constructeur : Spring fournit le CarburantApiClient. */
     public EconomieService(CarburantApiClient carburantApiClient) {
         this.carburantApiClient = carburantApiClient;
     }
@@ -62,14 +64,17 @@ public class EconomieService {
      * @throws StationIntrouvableException si aucune station n'a cet identifiant
      */
     public EconomieResponse calculerPourStation(String idStation, Carburant carburant, double litres) {
+        // 1. On vérifie la saisie avant d'appeler l'API, pour ne pas faire d'appel réseau inutile
         if (idStation == null || idStation.isBlank()) {
             throw new IllegalArgumentException("L'identifiant de la station est obligatoire.");
         }
         verifierCarburantEtLitres(carburant, litres);
 
+        // 2. On récupère la station choisie ; si elle n'existe pas, le handler renvoie un 404
         Station station = carburantApiClient.trouverParId(idStation)
                 .orElseThrow(() -> new StationIntrouvableException(idStation));
 
+        // 3. On la compare aux stations de sa ville
         return calculer(station, stationsDeLaVille(station), carburant, litres);
     }
 
@@ -92,12 +97,14 @@ public class EconomieService {
         }
         verifierCarburantEtLitres(carburant, litres);
 
+        // Prix dans la station choisie : refus (400) si elle ne vend pas ce carburant ou l'a en rupture
         BigDecimal prixStation = prixDisponible(station, carburant)
                 .orElseThrow(() -> new IllegalArgumentException("La station " + station.getId()
                         + " ne vend pas le carburant " + carburant + " ou l'a en rupture."));
 
         BigDecimal prixMoyenLocal = prixMoyen(station, stationsDeLaVille, carburant);
 
+        // montant = (moyenne − prix de la station) × litres, arrondi au centime
         BigDecimal montant = prixMoyenLocal.subtract(prixStation)
                 .multiply(BigDecimal.valueOf(litres))
                 .setScale(DECIMALES_MONTANT, RoundingMode.HALF_UP);
@@ -133,6 +140,7 @@ public class EconomieService {
      * il y a donc au moins un prix (celui de la station, vérifié avant l'appel).
      */
     private BigDecimal prixMoyen(Station station, List<Station> stationsDeLaVille, Carburant carburant) {
+        // La station choisie d'abord, puis les autres sans doublon (même identifiant = même station)
         Map<String, Station> stationsParId = new LinkedHashMap<>();
         stationsParId.put(station.getId(), station);
         if (stationsDeLaVille != null) {
@@ -143,6 +151,7 @@ public class EconomieService {
             }
         }
 
+        // On ne compte que les stations qui ont un prix disponible pour ce carburant
         BigDecimal somme = BigDecimal.ZERO;
         int nombrePrix = 0;
         for (Station s : stationsParId.values()) {
