@@ -38,7 +38,7 @@ public class UtilisateurService {
                 email,
                 passwordEncoder.encode(requete.getMotDePasse()));
 
-        return UtilisateurDTO.depuis(utilisateurRepository.save(utilisateur));
+        return UtilisateurDTO.toDTO(utilisateurRepository.save(utilisateur));
     }
 
     /**
