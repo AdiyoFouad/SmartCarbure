@@ -20,7 +20,7 @@ public class UtilisateurDTO {
     private Carburant carburantPrefere;
     private Integer rayonPrefere;
 
-    public static UtilisateurDTO depuis(Utilisateur utilisateur) {
+    public static UtilisateurDTO toDTO(Utilisateur utilisateur) {
         return new UtilisateurDTO(
                 utilisateur.getId(),
                 utilisateur.getNom(),
