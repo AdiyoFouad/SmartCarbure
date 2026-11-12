@@ -20,6 +20,19 @@ public class RestClientConfig {
             @Value("${smartcarbure.api-carburants.url}") String url,
             @Value("${smartcarbure.api-carburants.delai-connexion:3s}") Duration delaiConnexion,
             @Value("${smartcarbure.api-carburants.delai-lecture:5s}") Duration delaiLecture) {
+        return creer(url, delaiConnexion, delaiLecture);
+    }
+
+    /** Client HTTP du service d'itinéraire OpenRouteService (utilisé par ItineraireClient). */
+    @Bean
+    public RestClient itineraireRestClient(
+            @Value("${smartcarbure.itineraire.url:https://api.openrouteservice.org}") String url,
+            @Value("${smartcarbure.itineraire.delai-connexion:3s}") Duration delaiConnexion,
+            @Value("${smartcarbure.itineraire.delai-lecture:10s}") Duration delaiLecture) {
+        return creer(url, delaiConnexion, delaiLecture);
+    }
+
+    private static RestClient creer(String url, Duration delaiConnexion, Duration delaiLecture) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(delaiConnexion);
         requestFactory.setReadTimeout(delaiLecture);
