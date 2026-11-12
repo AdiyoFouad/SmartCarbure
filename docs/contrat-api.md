@@ -49,8 +49,13 @@ Le frontend affiche ses propres messages, choisis selon le code HTTP :
 | 400 | Saisie invalide (paramètre manquant, mal formé ou hors limites) | « Saisie invalide, vérifiez les champs du formulaire. » |
 | 401 | Non connecté, jeton invalide ou expiré, ou identifiants incorrects à la connexion | « Vous devez être connecté… » ou « Email ou mot de passe incorrect » |
 | 404 | Ressource introuvable : station inconnue (`/api/stations/{id}`, `/api/economie`, `POST /api/favoris`) ou favori absent (`DELETE /api/favoris/{idStation}`) | « L'élément demandé est introuvable. » |
+| 405 | Méthode HTTP non autorisée sur une route existante (par exemple `DELETE /api/stations/35000001`) | « Une erreur est survenue. » (erreur générique) |
 | 409 | Conflit : email déjà utilisé à l'inscription, ou station déjà en favori | « Cet email est déjà utilisé » ou « Cette station est déjà dans vos favoris » |
+| 415 | Corps de requête qui n'est pas en JSON (`Content-Type` différent de `application/json`) | « Une erreur est survenue. » (erreur générique) |
+| 500 | Erreur interne inattendue du backend ; le message est toujours générique (« Erreur interne du serveur. »), le détail n'apparaît que dans les logs | « Une erreur est survenue, réessayez plus tard. » |
 | 503 | API Prix des carburants ou service d'itinéraire indisponible | « Service temporairement indisponible… » avec un bouton « Réessayer » |
+
+Une route inexistante (par exemple `GET /api/inconnue`) renvoie 404 avec le message « Route inexistante : GET /api/inconnue. ». Les codes 405 et 415 signalent une erreur de programmation du frontend : ils ne doivent pas apparaître en utilisation normale.
 
 Le frontend traite aussi comme un 503 :
 - une panne réseau ;
