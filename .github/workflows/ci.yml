@@ -1,0 +1,111 @@
+# Intégration continue de SmartCarbure (C4).
+# À chaque pull request vers main, et à chaque push sur main, GitHub Actions :
+#  - compile le backend, lance ses tests JUnit et mesure la couverture avec JaCoCo ;
+#  - installe le frontend, lance ses tests Vitest et vérifie qu'il se construit.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Si un nouveau commit arrive sur la même PR, on annule l'exécution précédente
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (JUnit + JaCoCo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    # Base PostgreSQL temporaire, le temps du job : nécessaire au test contextLoads (Liquibase)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smartcarbure
+          POSTGRES_USER: smartcarbure
+          POSTGRES_PASSWORD: smartcarbure-ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smartcarbure -d smartcarbure"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Mêmes variables que dans docker-compose.yml, mais pointées vers la base du job
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/smartcarbure
+      SPRING_DATASOURCE_USERNAME: smartcarbure
+      SPRING_DATASOURCE_PASSWORD: smartcarbure-ci
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v5
+
+      - name: Installer Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Compiler, tester et mesurer la couverture
+        run: ./mvnw -B verify
+
+      - name: Afficher la couverture dans le résumé de l'exécution
+        if: always()
+        run: |
+          if [ -f target/site/jacoco/jacoco.csv ]; then
+            awk -F, 'NR > 1 { manquees += $4; couvertes += $5 }
+              END { printf "### Couverture JaCoCo (instructions) : %.1f %%\n", 100 * couvertes / (manquees + couvertes) }' \
+              target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publier le rapport de couverture JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rapport-jacoco
+          path: backend/target/site/jacoco/
+
+      - name: Publier les rapports de tests en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-tests-backend
+          path: backend/target/surefire-reports/
+
+  frontend:
+    name: Frontend (Vitest + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v5
+
+      # Vitest 5 demande Node 22 au minimum
+      - name: Installer Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installer les dépendances (versions exactes du package-lock.json)
+        run: npm ci
+
+      - name: Lancer les tests Vitest
+        run: npm test
+
+      - name: Construire l'application
+        run: npm run build
