@@ -40,6 +40,6 @@ public class AuthController {
     public AuthResponse connecter(@Valid @RequestBody ConnexionRequest requete) {
         Utilisateur utilisateur = utilisateurService.authentifier(requete);
         String jeton = jwtService.genererJeton(utilisateur);
-        return new AuthResponse(jeton, UtilisateurDTO.depuis(utilisateur));
+        return new AuthResponse(jeton, UtilisateurDTO.toDTO(utilisateur));
     }
 }
