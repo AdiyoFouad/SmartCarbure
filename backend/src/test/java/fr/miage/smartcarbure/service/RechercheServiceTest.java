@@ -101,7 +101,7 @@ class RechercheServiceTest {
     }
 
     @Test
-    void refuseLesCritèresDePositionInvalidesEtUnCarburantInconnu() {
+    void refuseLesCriteresDePositionInvalidesEtUnCarburantInconnu() {
         CritereRechercheDTO critere = new CritereRechercheDTO();
         critere.setCarburant("GAZOLE");
         critere.setLat(48.1);
