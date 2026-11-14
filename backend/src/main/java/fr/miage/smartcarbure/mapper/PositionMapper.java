@@ -19,10 +19,4 @@ public class PositionMapper {
         return dto;
     }
 
-    public Position fromDTO(PositionDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        return new Position(dto.getLatitude(), dto.getLongitude(), dto.getAdresse());
-    }
 }

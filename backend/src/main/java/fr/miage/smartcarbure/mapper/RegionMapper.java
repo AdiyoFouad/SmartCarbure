@@ -17,11 +17,4 @@ public class RegionMapper {
         dto.setNom(region.getNom());
         return dto;
     }
-
-    public Region fromDTO(RegionDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        return new Region(dto.getCode(), dto.getNom());
-    }
 }

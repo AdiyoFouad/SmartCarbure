@@ -16,7 +16,7 @@ public class PrixCarburantMapper {
 
     public PrixCarburantDTO toDTO(PrixCarburant prixCarburant) {
         PrixCarburantDTO dto = new PrixCarburantDTO();
-        dto.setCarburant(prixCarburant.getCarburant());
+        dto.setType(prixCarburant.getCarburant());
         dto.setPrix(prixCarburant.getPrix());
         dto.setDateMaj(toInstant(prixCarburant.getDateMaj()));
         dto.setDisponible(prixCarburant.isDisponible());
@@ -24,23 +24,7 @@ public class PrixCarburantMapper {
         dto.setDebutRupture(toInstant(prixCarburant.getDebutRupture()));
         return dto;
     }
-
-    public PrixCarburant fromDTO(PrixCarburantDTO dto) {
-        return PrixCarburant.builder()
-                .carburant(dto.getCarburant())
-                .prix(dto.getPrix())
-                .dateMaj(toLocalDateTime(dto.getDateMaj()))
-                .disponible(dto.isDisponible())
-                .typeRupture(dto.getTypeRupture())
-                .debutRupture(toLocalDateTime(dto.getDebutRupture()))
-                .build();
-    }
-
     private Instant toInstant(LocalDateTime date) {
         return date == null ? null : date.atZone(ZONE_PARIS).toInstant();
-    }
-
-    private LocalDateTime toLocalDateTime(Instant date) {
-        return date == null ? null : date.atZone(ZONE_PARIS).toLocalDateTime();
     }
 }
