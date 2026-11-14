@@ -36,24 +36,5 @@ class DepartementMapperTest {
     @Test
     void renvoieNullPourUnDepartementNul() {
         assertNull(mapper.toDTO(null));
-        assertNull(mapper.fromDTO(null));
-    }
-
-    @Test
-    void convertitDepartementDepuisDtoAvecRegion() {
-        RegionDTO regionDTO = new RegionDTO();
-        regionDTO.setCode("53");
-        regionDTO.setNom("Bretagne");
-        DepartementDTO dto = new DepartementDTO();
-        dto.setCode("35");
-        dto.setNom("Ille-et-Vilaine");
-        dto.setRegion(regionDTO);
-
-        Departement departement = mapper.fromDTO(dto);
-
-        assertEquals("35", departement.getCode());
-        assertEquals("Ille-et-Vilaine", departement.getNom());
-        assertEquals("53", departement.getRegion().getCode());
-        assertEquals("Bretagne", departement.getRegion().getNom());
     }
 }

@@ -23,18 +23,5 @@ class RegionMapperTest {
     @Test
     void renvoieNullPourUneRegionNulle() {
         assertNull(mapper.toDTO(null));
-        assertNull(mapper.fromDTO(null));
-    }
-
-    @Test
-    void convertitRegionDepuisDto() {
-        RegionDTO dto = new RegionDTO();
-        dto.setCode("53");
-        dto.setNom("Bretagne");
-
-        Region region = mapper.fromDTO(dto);
-
-        assertEquals("53", region.getCode());
-        assertEquals("Bretagne", region.getNom());
     }
 }

@@ -24,20 +24,5 @@ class PositionMapperTest {
     @Test
     void renvoieNullPourUnePositionNulle() {
         assertNull(mapper.toDTO(null));
-        assertNull(mapper.fromDTO(null));
-    }
-
-    @Test
-    void convertitPositionDepuisDto() {
-        PositionDTO dto = new PositionDTO();
-        dto.setLatitude(48.1);
-        dto.setLongitude(-1.68);
-        dto.setAdresse("1 rue X");
-
-        Position position = mapper.fromDTO(dto);
-
-        assertEquals(48.1, position.getLatitude());
-        assertEquals(-1.68, position.getLongitude());
-        assertEquals("1 rue X", position.getAdresse());
     }
 }

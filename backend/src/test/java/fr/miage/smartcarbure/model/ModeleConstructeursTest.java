@@ -57,6 +57,18 @@ class ModeleConstructeursTest {
         assertDoesNotThrow(() -> new Position(48.1, -1.6, null));
     }
 
+    @Test
+    void positionRefuseLesCoordonneesHorsLimitesOuNonFinies() {
+        assertThrows(IllegalArgumentException.class, () -> new Position(90.1, 0.0, null));
+        assertThrows(IllegalArgumentException.class, () -> new Position(-90.1, 0.0, null));
+        assertThrows(IllegalArgumentException.class, () -> new Position(0.0, 180.1, null));
+        assertThrows(IllegalArgumentException.class, () -> new Position(0.0, -180.1, null));
+        assertThrows(IllegalArgumentException.class, () -> new Position(Double.NaN, 0.0, null));
+        assertThrows(IllegalArgumentException.class, () -> new Position(0.0, Double.POSITIVE_INFINITY, null));
+        assertDoesNotThrow(() -> new Position(90.0, 180.0, null));
+        assertDoesNotThrow(() -> new Position(-90.0, -180.0, null));
+    }
+
     // --- equals / hashCode ---
 
     @Test

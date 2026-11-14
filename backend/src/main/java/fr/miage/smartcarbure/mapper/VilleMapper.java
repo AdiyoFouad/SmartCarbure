@@ -24,12 +24,4 @@ public class VilleMapper {
         dto.setDepartement(departementMapper.toDTO(ville.getDepartement()));
         return dto;
     }
-
-    public Ville fromDTO(VilleDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        return new Ville(dto.getNom(), dto.getCodePostal(),
-                departementMapper.fromDTO(dto.getDepartement()));
-    }
 }
