@@ -26,7 +26,7 @@ public class RestClientConfig {
     /** Client HTTP du service d'itinéraire OpenRouteService (utilisé par ItineraireClient). */
     @Bean
     public RestClient itineraireRestClient(
-            @Value("${smartcarbure.itineraire.url:https://api.openrouteservice.org}") String url,
+            @Value("${smartcarbure.itineraire.url:https://api.heigit.org}") String url,
             @Value("${smartcarbure.itineraire.delai-connexion:3s}") Duration delaiConnexion,
             @Value("${smartcarbure.itineraire.delai-lecture:10s}") Duration delaiLecture) {
         return creer(url, delaiConnexion, delaiLecture);

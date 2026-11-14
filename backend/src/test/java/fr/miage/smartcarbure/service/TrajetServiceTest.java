@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -252,6 +253,59 @@ class TrajetServiceTest {
     }
 
     // ------------------------------------------------------------------
+    // Tronçons (plafond de 500 stations par recherche)
+    // ------------------------------------------------------------------
+
+    @Test
+    void unTrajetCourtNeDemandeQuUneRecherche() {
+        simulerApi();
+
+        service.rechercherLeLongDuTrajet(trajet, null, Carburant.GAZOLE);
+
+        verify(client, times(1)).rechercherAutourDePoints(anyList(), anyDouble());
+    }
+
+    @Test
+    void unTrajetLongEstCherchePartronconsDAuPlus20Points() {
+        Trajet long222km = trajetVersLeSud(2.0, 222.4);
+        simulerApi();
+
+        service.rechercherLeLongDuTrajet(long222km, null, Carburant.GAZOLE);
+
+        // 222 km tous les 3 km : 76 points, donc 4 tronçons de 20 points au plus
+        verify(client, times(4)).rechercherAutourDePoints(anyList(), anyDouble());
+    }
+
+    @Test
+    void uneStationTrouveeDansPlusieursTronconsNApparaitQuUneFois() {
+        Trajet long222km = trajetVersLeSud(2.0, 222.4);
+        // Station à 1 km de la route, au milieu du trajet, renvoyée par chaque recherche.
+        Station station = Station.builder().id("partout")
+                .position(new Position(47.0, LONGITUDE_ROUTE + 1.0 / (111.195 * Math.cos(Math.toRadians(47.0))), null))
+                .carburants(List.of(gazole(1.70, true))).build();
+        simulerApi(station);
+
+        List<StationSurTrajet> resultats = service.rechercherLeLongDuTrajet(long222km, null, Carburant.GAZOLE);
+
+        assertEquals(List.of("partout"), ids(resultats));
+    }
+
+    @Test
+    void decouperEnTronconsGardeTousLesPointsDansLOrdre() {
+        List<Position> points = new java.util.ArrayList<>();
+        for (int i = 0; i < 45; i++) {
+            points.add(new Position(48.0 - i * 0.01, LONGITUDE_ROUTE, null));
+        }
+
+        List<List<Position>> troncons = TrajetService.decouperEnTroncons(points, 20);
+
+        assertEquals(3, troncons.size());
+        assertEquals(20, troncons.get(0).size());
+        assertEquals(5, troncons.get(2).size());
+        assertEquals(points.get(20), troncons.get(1).get(0));
+    }
+
+    // ------------------------------------------------------------------
     // Panne de l'API
     // ------------------------------------------------------------------
 
@@ -267,6 +321,13 @@ class TrajetServiceTest {
     // ------------------------------------------------------------------
     // Outils
     // ------------------------------------------------------------------
+
+    /** Trajet tout droit vers le sud, de la latitude 48.0 à 48.0 - degres. */
+    private static Trajet trajetVersLeSud(double degres, double distanceKm) {
+        Position depart = new Position(48.0, LONGITUDE_ROUTE, null);
+        Position arrivee = new Position(48.0 - degres, LONGITUDE_ROUTE, null);
+        return new Trajet(depart, arrivee, List.of(depart, arrivee), distanceKm);
+    }
 
     private void simulerApi(Station... stations) {
         when(client.rechercherAutourDePoints(anyList(), anyDouble())).thenReturn(List.of(stations));

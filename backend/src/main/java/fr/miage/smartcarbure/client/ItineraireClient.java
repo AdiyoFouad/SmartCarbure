@@ -41,8 +41,11 @@ public class ItineraireClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(ItineraireClient.class);
 
-    /** Endpoint Directions v2 d'OpenRouteService, profil voiture, réponse GeoJSON. */
-    static final String CHEMIN_DIRECTIONS = "/v2/directions/driving-car/geojson";
+    /**
+     * Endpoint Directions v2 d'OpenRouteService, profil voiture, réponse GeoJSON, sur le serveur
+     * api.heigit.org (l'ancienne adresse api.openrouteservice.org est fermée depuis novembre 2026).
+     */
+    static final String CHEMIN_DIRECTIONS = "/openrouteservice/v2/directions/driving-car/geojson";
 
     private final RestClient restClient;
     private final String cleApi;

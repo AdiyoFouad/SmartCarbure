@@ -9,7 +9,9 @@ import fr.miage.smartcarbure.model.StationSurTrajet;
 import fr.miage.smartcarbure.model.Trajet;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -18,8 +20,9 @@ import org.springframework.stereotype.Service;
  * Recherche des stations le long d'un trajet (F6). Méthode décrite dans docs/etude-trajet.md :
  * <ol>
  *   <li>on place des points tous les {@value #ESPACEMENT_POINTS_KM} km le long de la route ;</li>
- *   <li>on récupère les stations dans un cercle autour de chaque point (un seul appel à l'API pour
- *       100 points, voir {@link CarburantApiClient#rechercherAutourDePoints}) ;</li>
+ *   <li>on récupère les stations dans un cercle autour de chaque point, tronçon par tronçon
+ *       (environ 60 km par recherche, voir {@link CarburantApiClient#rechercherAutourDePoints}),
+ *       puis on supprime les doublons ;</li>
  *   <li>on ne garde que les stations à moins de {@code rayonKm} de la route, qui vendent le carburant demandé ;</li>
  *   <li>on trie par prix ; les stations en rupture sur ce carburant sont placées en fin de liste.</li>
  * </ol>
@@ -40,6 +43,13 @@ public class TrajetService {
     public static final double LONGUEUR_MAX_KM = 500.0;
     /** Espacement des points placés le long de la route. */
     public static final double ESPACEMENT_POINTS_KM = 3.0;
+    /**
+     * Nombre de points par tronçon (20 points espacés de 3 km : environ 60 km de route).
+     * CarburantApiClient renvoie au plus max-resultats (500) stations par recherche, rangées par id :
+     * une recherche par tronçon garantit qu'aucune station n'est perdue au hasard, même en ville
+     * avec un rayon de 10 km.
+     */
+    static final int POINTS_PAR_TRONCON = 20;
 
     /** Kilomètres par degré de latitude (rayon terrestre moyen de CalculDistance). */
     private static final double KM_PAR_DEGRE = 6_371.0088 * Math.PI / 180;
@@ -74,10 +84,15 @@ public class TrajetService {
         }
 
         List<Position> echantillons = echantillonner(trajet.getPoints(), ESPACEMENT_POINTS_KM);
-        List<Station> candidates = carburantApiClient.rechercherAutourDePoints(echantillons, rayonRecherche(rayon));
+        Map<String, Station> candidates = new LinkedHashMap<>();
+        for (List<Position> troncon : decouperEnTroncons(echantillons, POINTS_PAR_TRONCON)) {
+            for (Station station : carburantApiClient.rechercherAutourDePoints(troncon, rayonRecherche(rayon))) {
+                candidates.putIfAbsent(station.getId(), station);
+            }
+        }
 
         List<StationSurTrajet> resultats = new ArrayList<>();
-        for (Station station : candidates) {
+        for (Station station : candidates.values()) {
             Position position = station.getPosition();
             if (position == null || position.getLatitude() == null || prixDe(station, carburant).isEmpty()) {
                 continue;
@@ -124,6 +139,15 @@ public class TrajetService {
             echantillons.add(arrivee);
         }
         return echantillons;
+    }
+
+    /** Découpe la liste de points en tronçons d'au plus taille points, dans l'ordre de la route. */
+    static List<List<Position>> decouperEnTroncons(List<Position> points, int taille) {
+        List<List<Position>> troncons = new ArrayList<>();
+        for (int debut = 0; debut < points.size(); debut += taille) {
+            troncons.add(points.subList(debut, Math.min(debut + taille, points.size())));
+        }
+        return troncons;
     }
 
     /** Distance en km entre une position et le point le plus proche de la route. */
