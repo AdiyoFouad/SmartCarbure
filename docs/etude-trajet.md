@@ -13,7 +13,7 @@ L'utilisateur place un point de départ et un point d'arrivée sur la carte, cho
 
 **OpenRouteService** *(sous réserve du vote du groupe)*
 
-- Gratuit, sans carte bancaire, avec une clé personnelle gratuite.
+- Gratuit, sans carte bancaire, avec une clé personnelle gratuite (adresse : api.heigit.org).
 - 2 000 trajets par jour : largement assez pour le projet.
 - Appelé par le **backend** uniquement ; la clé est dans le fichier `.env`, jamais sur GitHub.
 - Un seul appel par recherche.
@@ -26,11 +26,11 @@ L'API des carburants ne sait chercher que **dans un cercle autour d'un point**. 
 
 1. On demande la route à OpenRouteService.
 2. On place un point **tous les 3 km** le long de la route.
-3. Autour de chaque point, on récupère les stations dans un cercle un peu plus large que le couloir. La méthode `rechercherAutourDePoints` d'Ibrahim (L1-02) regroupe jusqu'à 100 points dans un seul appel et supprime déjà les doublons.
+3. Autour de chaque point, on récupère les stations dans un cercle un peu plus large que le couloir, avec la méthode `rechercherAutourDePoints` d'Ibrahim (L1-02). On l'appelle **par tronçons d'environ 60 km** : chaque recherche reste ainsi sous le plafond de 500 stations, et aucune station n'est perdue sur les longs trajets.
 4. On ne garde que les stations à **5 km maximum** de la route.
 5. On garde le carburant demandé et on trie par prix.
 
-Exemple : Rennes → Nantes (environ 110 km) demande **1 appel** à OpenRouteService et **1 recherche** dans l'API des carburants (quelques pages de 100 stations).
+Exemple : Rennes → Nantes (environ 110 km) demande **1 appel** à OpenRouteService et **2 recherches** dans l'API des carburants. Un trajet de 500 km en demande 9.
 
 ## 4. Réglages
 
