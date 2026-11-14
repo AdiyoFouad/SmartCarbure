@@ -13,8 +13,4 @@ public class ServiceStationMapper {
         dto.setNom(service.getNom());
         return dto;
     }
-
-    public ServiceStation fromDTO(ServiceStationDTO dto) {
-        return new ServiceStation(dto.getNom());
-    }
 }
