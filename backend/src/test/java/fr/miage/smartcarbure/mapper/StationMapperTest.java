@@ -1,8 +1,8 @@
 package fr.miage.smartcarbure.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -12,6 +12,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import fr.miage.smartcarbure.dto.StationDTO;
 import fr.miage.smartcarbure.enums.Carburant;
 import fr.miage.smartcarbure.enums.TypeEmplacement;
@@ -30,10 +32,9 @@ class StationMapperTest {
     private final VilleMapper villeMapper = new VilleMapper(
             new DepartementMapper(new RegionMapper()));
     private final HoraireMapper horaireMapper = new HoraireMapper();
-    private final ServiceStationMapper serviceMapper = new ServiceStationMapper();
     private final PrixCarburantMapper prixCarburantMapper = new PrixCarburantMapper();
     private final StationMapper mapper = new StationMapper(positionMapper, villeMapper,
-            horaireMapper, serviceMapper, prixCarburantMapper);
+            horaireMapper, prixCarburantMapper);
 
     @Test
     void convertitTouteLaStationEtSesSousObjetsEnDto() {
@@ -59,53 +60,35 @@ class StationMapperTest {
 
         assertEquals(station.getId(), dto.getId());
         assertEquals(station.getNom(), dto.getNom());
+        assertEquals("1 rue X", dto.getAdresse());
         assertEquals(station.getPosition().getLatitude(), dto.getPosition().getLatitude());
-        assertEquals("Rennes", dto.getVille().getNom());
-        assertEquals("53", dto.getVille().getDepartement().getRegion().getCode());
+        assertEquals("Rennes", dto.getVille());
+        assertEquals("35000", dto.getCodePostal());
+        assertEquals("35", dto.getDepartement().getCode());
+        assertEquals("53", dto.getRegion().getCode());
         assertEquals(TypeEmplacement.AUTOROUTE, dto.getEmplacement());
-        assertEquals(DayOfWeek.MONDAY, dto.getHoraires().getFirst().getJour());
+        assertEquals("lundi", dto.getHoraires().getFirst().getJour());
         assertEquals(LocalTime.of(8, 0), dto.getHoraires().getFirst().getOuverture());
-        assertEquals("Lavage", dto.getServices().getFirst().getNom());
-        assertEquals(Carburant.GAZOLE, dto.getCarburants().getFirst().getCarburant());
+        assertEquals("Lavage", dto.getServices().getFirst());
+        assertEquals(Carburant.GAZOLE, dto.getCarburants().getFirst().getType());
         assertEquals(Instant.parse("2026-11-04T07:56:01Z"), dto.getCarburants().getFirst().getDateMaj());
         assertNull(dto.getCarburants().getFirst().getDebutRupture());
         assertNull(dto.getDistanceKm());
-    }
 
-    @Test
-    void convertitDtoEnStationAvecSesSousObjets() {
-        StationDTO dto = new StationDTO();
-        dto.setId("35000001");
-        dto.setNom("Station test");
-        dto.setPosition(positionMapper.toDTO(new Position(48.1, -1.68, "1 rue X")));
-        dto.setVille(villeMapper.toDTO(new Ville("Rennes", "35000",
-                new Departement("35", "Ille-et-Vilaine", new Region("53", "Bretagne")))));
-        dto.setEmplacement(TypeEmplacement.AUTOROUTE);
-        dto.setAutomate24h(true);
-        dto.setHoraires(List.of(horaireMapper.toDTO(
-                new Horaire(DayOfWeek.MONDAY, false, LocalTime.of(8, 0), LocalTime.of(20, 0)))));
-        dto.setServices(List.of(serviceMapper.toDTO(new ServiceStation("Lavage"))));
-        dto.setCarburants(List.of(prixCarburantMapper.toDTO(PrixCarburant.builder()
-                .carburant(Carburant.GAZOLE)
-                .prix(1.789)
-                .dateMaj(LocalDateTime.of(2026, 11, 4, 8, 56, 1))
-                .build())));
-        dto.setDistanceKm(3.2);
-
-        Station station = mapper.fromDTO(dto);
-
-        assertEquals("35000001", station.getId());
-        assertEquals("Station test", station.getNom());
-        assertEquals(48.1, station.getPosition().getLatitude());
-        assertEquals("Rennes", station.getVille().getNom());
-        assertEquals("53", station.getRegion().getCode());
-        assertEquals(TypeEmplacement.AUTOROUTE, station.getEmplacement());
-        assertTrue(station.isAutomate24h());
-        assertEquals(DayOfWeek.MONDAY, station.getHoraires().getFirst().getJour());
-        assertEquals("Lavage", station.getServices().getFirst().getNom());
-        assertEquals(Carburant.GAZOLE, station.getCarburants().getFirst().getCarburant());
-        assertEquals(LocalDateTime.of(2026, 11, 4, 8, 56, 1),
-                station.getCarburants().getFirst().getDateMaj());
+        JsonNode json = JsonMapper.builder().build().valueToTree(dto);
+        assertEquals("1 rue X", json.get("adresse").asString());
+        assertEquals("Rennes", json.get("ville").asString());
+        assertEquals("35000", json.get("codePostal").asString());
+        assertEquals("Ille-et-Vilaine", json.get("departement").get("nom").asString());
+        assertEquals("Bretagne", json.get("region").get("nom").asString());
+        assertFalse(json.get("position").has("adresse"));
+        assertFalse(json.get("departement").has("region"));
+        assertEquals("lundi", json.get("horaires").get(0).get("jour").asString());
+        assertFalse(json.get("horaires").get(0).has("ferme"));
+        assertEquals("Lavage", json.get("services").get(0).asString());
+        assertEquals("GAZOLE", json.get("carburants").get(0).get("type").asString());
+        assertFalse(json.get("carburants").get(0).has("carburant"));
+        assertFalse(json.has("distanceKm"));
     }
 
 }

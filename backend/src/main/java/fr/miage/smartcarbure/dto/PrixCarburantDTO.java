@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 public class PrixCarburantDTO {
-    private Carburant carburant;
+    private Carburant type;
     private Double prix;
     private Instant dateMaj;
     private boolean disponible;

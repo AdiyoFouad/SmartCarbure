@@ -24,11 +24,4 @@ public class DepartementMapper {
         dto.setRegion(regionMapper.toDTO(departement.getRegion()));
         return dto;
     }
-
-    public Departement fromDTO(DepartementDTO dto) {
-        if (dto == null) {
-            return null;
-        }
-        return new Departement(dto.getCode(), dto.getNom(), regionMapper.fromDTO(dto.getRegion()));
-    }
 }
