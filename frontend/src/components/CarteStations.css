@@ -1,1 +1,153 @@
-/* Styles du composant CarteStations. */
+/* Styles du composant CarteStations (F9). Couleurs et espacements : variables de src/index.css. */
+
+.carte-stations {
+  position: relative;
+  width: 100%;
+}
+
+/* Leaflet a besoin d'une hauteur explicite. */
+.carte-stations__leaflet {
+  width: 100%;
+  height: 620px;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 8%);
+  z-index: 0; /* évite que la carte passe au-dessus de la barre de navigation */
+}
+
+/* Version compacte : page Fiche station. */
+.carte-stations--compacte .carte-stations__leaflet {
+  height: 350px;
+}
+
+@media (max-width: 768px) {
+  .carte-stations__leaflet {
+    height: 360px;
+  }
+
+  .carte-stations--compacte .carte-stations__leaflet {
+    height: 260px;
+  }
+}
+
+.carte-stations__message {
+  margin: var(--espace-2) 0 0;
+  color: var(--couleur-texte-secondaire);
+  font-size: 0.9rem;
+}
+
+/* ---------- Épingles ---------- */
+
+/* La divIcon de Leaflet ajoute un fond blanc par défaut : on le retire. */
+.carte-stations__icone {
+  background: none;
+  border: none;
+}
+
+.carte-stations__epingle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  color: #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 30%);
+}
+
+/* Le pictogramme est redressé pour rester droit dans l'épingle tournée. */
+.carte-stations__epingle svg {
+  transform: rotate(45deg);
+}
+
+.carte-stations__epingle--bas {
+  background: var(--couleur-principale);
+}
+
+.carte-stations__epingle--moyen {
+  background: var(--couleur-accent);
+}
+
+.carte-stations__epingle--eleve {
+  background: var(--couleur-erreur);
+}
+
+.carte-stations__epingle--indisponible {
+  background: var(--couleur-texte-secondaire);
+}
+
+/* ---------- Bulle ---------- */
+
+.carte-stations__bulle {
+  min-width: 190px;
+  font-family: var(--police);
+  color: var(--couleur-texte);
+}
+
+.carte-stations__bulle p {
+  margin: 0;
+}
+
+.carte-stations__bulle-nom {
+  margin-bottom: var(--espace-3) !important;
+  font-size: 0.95rem;
+}
+
+.carte-stations__bulle-prix {
+  margin-bottom: var(--espace-3) !important;
+}
+
+.carte-stations__prix {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.carte-stations__prix--bas {
+  color: var(--couleur-principale);
+}
+
+.carte-stations__prix--moyen {
+  color: var(--couleur-accent-texte);
+}
+
+.carte-stations__prix--eleve {
+  color: var(--couleur-erreur-texte);
+}
+
+.carte-stations__bulle-carburant {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.carte-stations__bulle-liste {
+  margin: 0 0 var(--espace-3);
+  padding: 0;
+  list-style: none;
+}
+
+.carte-stations__bulle-liste li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  padding: var(--espace-1) 0;
+}
+
+.carte-stations__bulle-liste strong {
+  color: var(--couleur-principale);
+}
+
+.carte-stations__rupture {
+  display: inline-block;
+  padding: 0 var(--espace-2);
+  border-radius: var(--rayon);
+  background: var(--couleur-accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.carte-stations__bulle-lien {
+  color: var(--couleur-focus);
+  font-weight: 500;
+}
