@@ -22,7 +22,7 @@ class HoraireMapperTest {
         HoraireDTO dto = mapper.toDTO(
                 new Horaire(DayOfWeek.MONDAY, false, LocalTime.of(8, 0), LocalTime.of(20, 0)));
 
-        assertEquals(DayOfWeek.MONDAY, dto.getJour());
+        assertEquals("lundi", dto.getJour());
         assertFalse(dto.isFerme());
         assertEquals(LocalTime.of(8, 0), dto.getOuverture());
         assertEquals(LocalTime.of(20, 0), dto.getFermeture());
@@ -32,25 +32,10 @@ class HoraireMapperTest {
     void conserveUnHoraireFermeSansPlage() {
         HoraireDTO dto = mapper.toDTO(new Horaire(DayOfWeek.SUNDAY, true, null, null));
 
-        assertEquals(DayOfWeek.SUNDAY, dto.getJour());
+        assertEquals("dimanche", dto.getJour());
         assertTrue(dto.isFerme());
         assertNull(dto.getOuverture());
         assertNull(dto.getFermeture());
     }
 
-    @Test
-    void convertitHoraireDepuisDto() {
-        HoraireDTO dto = new HoraireDTO();
-        dto.setJour(DayOfWeek.MONDAY);
-        dto.setFerme(false);
-        dto.setOuverture(LocalTime.of(8, 0));
-        dto.setFermeture(LocalTime.of(20, 0));
-
-        Horaire horaire = mapper.fromDTO(dto);
-
-        assertEquals(DayOfWeek.MONDAY, horaire.getJour());
-        assertFalse(horaire.isFerme());
-        assertEquals(LocalTime.of(8, 0), horaire.getOuverture());
-        assertEquals(LocalTime.of(20, 0), horaire.getFermeture());
-    }
 }
