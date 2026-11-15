@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -102,35 +101,10 @@ class StationControllerTest {
             ]""";
 
     /**
-     * Format ACTUEL produit par StationDTO + StationMapper. Ce test doit rester vert (CI).
-     * Écarts avec le contrat, à corriger par Fouad (voir le test désactivé ci-dessous) :
-     * "nom" et "distanceKm" omis à cause de @JsonInclude(NON_NULL), heures "07:00:00" au lieu de "07:00",
-     * champ "ferme" masqué par @JsonIgnore.
+     * Format du CONTRAT (docs/contrat-api.md) : "nom": null et "distanceKm": null présents,
+     * heures "HH:mm", champ "ferme" dans chaque horaire.
      */
     @Test
-    void ficheAuFormatActuel() throws Exception {
-        when(client.trouverParId(ID)).thenReturn(Optional.of(stationExemple()));
-
-        verifier(get("/api/stations/" + ID), 200, """
-                {
-                  "id": "35000025",
-                  "adresse": "19, BD LEON BOURGEOIS",
-                  "ville": "Rennes",
-                  "codePostal": "35000",
-                  "departement": { "code": "35", "nom": "Ille-et-Vilaine" },
-                  "region": { "code": "53", "nom": "Bretagne" },
-                  "position": { "latitude": 48.098902183757, "longitude": -1.6540071882226999 },
-                  "emplacement": "ROUTE",
-                  "automate24h": true,
-                  "horaires": %s,
-                  "services": ["Automate CB 24/24", "Piste poids lourds", "Relais colis"],
-                  "carburants": %s
-                }""".formatted(horaires("07:00:00", "22:00:00", false), CARBURANTS));
-    }
-
-    /** Format du CONTRAT (docs/contrat-api.md) : à activer quand StationDTO / HoraireDTO seront corrigés. */
-    @Test
-    @Disabled("En attente de la correction de StationDTO par Fouad : NON_NULL, format HH:mm, champ ferme")
     void ficheAuFormatDuContrat() throws Exception {
         when(client.trouverParId(ID)).thenReturn(Optional.of(stationExemple()));
 
