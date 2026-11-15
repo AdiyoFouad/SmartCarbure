@@ -11,7 +11,6 @@ import fr.miage.smartcarbure.model.PrixCarburant;
 import fr.miage.smartcarbure.model.Station;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
