@@ -3,6 +3,7 @@ package fr.miage.smartcarbure.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -84,11 +85,14 @@ class StationMapperTest {
         assertFalse(json.get("position").has("adresse"));
         assertFalse(json.get("departement").has("region"));
         assertEquals("lundi", json.get("horaires").get(0).get("jour").asString());
-        assertFalse(json.get("horaires").get(0).has("ferme"));
+        assertFalse(json.get("horaires").get(0).get("ferme").asBoolean());
         assertEquals("Lavage", json.get("services").get(0).asString());
         assertEquals("GAZOLE", json.get("carburants").get(0).get("type").asString());
         assertFalse(json.get("carburants").get(0).has("carburant"));
-        assertFalse(json.has("distanceKm"));
+        assertTrue(json.has("distanceKm"));
+        assertTrue(json.get("distanceKm").isNull());
+        assertTrue(json.get("carburants").get(0).has("debutRupture"));
+        assertTrue(json.get("carburants").get(0).get("debutRupture").isNull());
     }
 
 }
