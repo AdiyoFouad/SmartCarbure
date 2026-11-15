@@ -1,5 +1,6 @@
 package fr.miage.smartcarbure.dto;
 
+import fr.miage.smartcarbure.enums.Carburant;
 import fr.miage.smartcarbure.enums.TypeTri;
 import lombok.Data;
 
@@ -10,6 +11,6 @@ public class CritereRechercheDTO {
 	private Double lon;
 	private Integer rayon;
 	private String ville;
-	private String carburant;
+	private Carburant carburant;
 	private TypeTri tri = TypeTri.PRIX;
 }

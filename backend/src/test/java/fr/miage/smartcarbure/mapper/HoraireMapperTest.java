@@ -10,6 +10,8 @@ import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
 
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import fr.miage.smartcarbure.dto.HoraireDTO;
 import fr.miage.smartcarbure.model.Horaire;
 
@@ -36,6 +38,17 @@ class HoraireMapperTest {
         assertTrue(dto.isFerme());
         assertNull(dto.getOuverture());
         assertNull(dto.getFermeture());
+    }
+
+    @Test
+    void serialiseLesHeuresAuFormatHeuresMinutes() {
+        HoraireDTO dto = mapper.toDTO(
+                new Horaire(DayOfWeek.MONDAY, false, LocalTime.of(8, 0), LocalTime.of(20, 0)));
+
+        JsonNode json = JsonMapper.builder().build().valueToTree(dto);
+
+        assertEquals("08:00", json.get("ouverture").asString());
+        assertEquals("20:00", json.get("fermeture").asString());
     }
 
 }
