@@ -56,7 +56,7 @@ class RechercheServiceTest {
         critere.setLat(0.0);
         critere.setLon(0.0);
         critere.setRayon(10);
-        critere.setCarburant("GAZOLE");
+        critere.setCarburant(Carburant.GAZOLE);
         critere.setTri(TypeTri.DISTANCE);
 
         List<StationDTO> resultats = service.rechercher(critere);
@@ -78,7 +78,7 @@ class RechercheServiceTest {
 
         CritereRechercheDTO critere = new CritereRechercheDTO();
         critere.setVille("Rennes");
-        critere.setCarburant("E10");
+        critere.setCarburant(Carburant.E10);
         critere.setTri(TypeTri.PRIX);
 
         List<StationDTO> resultats = service.rechercher(critere);
@@ -94,7 +94,7 @@ class RechercheServiceTest {
 
             CritereRechercheDTO critere = new CritereRechercheDTO();
             critere.setVille(" 35000 ");
-            critere.setCarburant("GAZOLE");
+            critere.setCarburant(Carburant.GAZOLE);
 
             assertEquals(List.of(), service.rechercher(critere));
             verify(carburantApiClient).rechercherParCodePostal("35000");
@@ -103,7 +103,7 @@ class RechercheServiceTest {
     @Test
     void refuseLesCriteresDePositionInvalidesEtUnCarburantInconnu() {
         CritereRechercheDTO critere = new CritereRechercheDTO();
-        critere.setCarburant("GAZOLE");
+        critere.setCarburant(Carburant.GAZOLE);
         critere.setLat(48.1);
         critere.setRayon(10);
         assertThrows(IllegalArgumentException.class, () -> service.rechercher(critere));
@@ -113,10 +113,7 @@ class RechercheServiceTest {
         assertThrows(IllegalArgumentException.class, () -> service.rechercher(critere));
 
         critere.setRayon(10);
-        critere.setCarburant("KEROZENE");
-        assertThrows(IllegalArgumentException.class, () -> service.rechercher(critere));
-
-        critere.setCarburant("SP95-E10");
+        critere.setCarburant(null);
         assertThrows(IllegalArgumentException.class, () -> service.rechercher(critere));
     }
 

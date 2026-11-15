@@ -37,7 +37,10 @@ public class RechercheService {
 
     public List<StationDTO> rechercher(CritereRechercheDTO critere) {
         Objects.requireNonNull(critere, "Les critères de recherche sont obligatoires.");
-        Carburant carburant = lireCarburant(critere.getCarburant());
+        Carburant carburant = critere.getCarburant();
+        if (carburant == null) {
+            throw new IllegalArgumentException("Le type de carburant est obligatoire.");
+        }
         TypeTri tri = critere.getTri() == null ? TypeTri.PRIX : critere.getTri();
 
         boolean rechercheParVille = critere.getVille() != null && !critere.getVille().isBlank();
@@ -136,18 +139,6 @@ public class RechercheService {
                     "Le rayon doit être compris entre " + RAYON_MIN_KM + " et " + RAYON_MAX_KM + " km.");
         }
         return rayon;
-    }
-
-    private Carburant lireCarburant(String valeur) {
-        if (valeur == null || valeur.isBlank()) {
-            throw new IllegalArgumentException("Le type de carburant est obligatoire.");
-        }
-        String code = valeur.trim().toUpperCase(Locale.ROOT);
-        try {
-            return Carburant.valueOf(code);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Type de carburant inconnu : " + valeur, e);
-        }
     }
 
     private boolean aDesCoordonnees(Position position) {
