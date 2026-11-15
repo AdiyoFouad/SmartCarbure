@@ -20,7 +20,7 @@ Ce document décrit les routes REST que le frontend appelle. Le backend doit les
   - en développement, Vite redirige `/api` vers `http://localhost:8080` (voir `frontend/vite.config.js`) ;
   - dans Docker, c'est Nginx qui redirige `/api/` vers `http://backend:8080/api/` (voir `frontend/nginx.conf`).
 - **Format :** les requêtes et les réponses sont en JSON (`Content-Type: application/json`), encodées en UTF-8.
-- **Dates :** format ISO 8601 en UTC, avec le suffixe `Z` (`2026-11-03T14:05:00Z`). L'API Prix des carburants fournit des heures locales (Europe/Paris) : le backend les convertit en UTC.
+- **Dates :** format ISO 8601 en UTC, avec le suffixe `Z` (`2026-11-03T14:05:00Z`). L'API Prix des carburants marque ses heures `+00:00`, mais ce sont en réalité des heures de Paris (Europe/Paris) : le backend ignore ce décalage et les convertit en UTC avec `Z`, en tenant compte de l'heure d'été (14:30 à Paris donne `13:30Z` en hiver, `12:30Z` en été).
 - **Prix :** en euros par litre, nombre décimal avec trois décimales (`1.789`). Les montants (économie) sont arrondis au centime (`1.10`).
 - **Distances :** en kilomètres, arrondies à une décimale (`3.2`).
 - **Codes carburant :** `GAZOLE`, `SP95`, `SP98`, `E10`, `E85`, `GPLC`. Un autre code renvoie une erreur 400.
@@ -94,7 +94,7 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 ```json
 {
   "id": "35000001",
-  "nom": "Station Rennes Centre",
+  "nom": null,
   "adresse": "12 boulevard de la Liberté",
   "ville": "Rennes",
   "codePostal": "35000",
@@ -104,13 +104,13 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
   "emplacement": "ROUTE",
   "automate24h": true,
   "horaires": [
-    { "jour": "lundi", "ouverture": "07:00", "fermeture": "21:00" },
-    { "jour": "mardi", "ouverture": "07:00", "fermeture": "21:00" },
-    { "jour": "mercredi", "ouverture": "07:00", "fermeture": "21:00" },
-    { "jour": "jeudi", "ouverture": "07:00", "fermeture": "21:00" },
-    { "jour": "vendredi", "ouverture": "07:00", "fermeture": "21:00" },
-    { "jour": "samedi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "dimanche", "ouverture": null, "fermeture": null }
+    { "jour": "lundi", "ferme": false, "ouverture": "07:00", "fermeture": "21:00" },
+    { "jour": "mardi", "ferme": false, "ouverture": "07:00", "fermeture": "21:00" },
+    { "jour": "mercredi", "ferme": false, "ouverture": "07:00", "fermeture": "21:00" },
+    { "jour": "jeudi", "ferme": false, "ouverture": "07:00", "fermeture": "21:00" },
+    { "jour": "vendredi", "ferme": false, "ouverture": "07:00", "fermeture": "21:00" },
+    { "jour": "samedi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "dimanche", "ferme": true, "ouverture": null, "fermeture": null }
   ],
   "services": ["Boutique alimentaire", "Gonflage"],
   "carburants": [
@@ -138,16 +138,20 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 | Champ | Valeurs |
 |---|---|
 | `id` | identifiant de la station dans l'API Prix des carburants (chaîne de caractères) |
+| `nom` | toujours `null` : l'API Prix des carburants ne fournit pas de nom de station |
 | `departement`, `region` | code et nom ; utilisés par la comparaison par département (F16) |
+| `position` | `latitude` et `longitude` en degrés décimaux ; elles peuvent valoir `null` si l'API ne fournit pas de coordonnées pour la station |
 | `emplacement` | `ROUTE` ou `AUTOROUTE` (champ `pop` de l'API : R ou A) |
 | `automate24h` | `true` si la station a un automate de paiement 24h/24 |
-| `horaires` | sept éléments, un par jour (`lundi` … `dimanche`) ; `ouverture` et `fermeture` à `null` si la station est fermée ce jour-là ; `[]` si l'API ne fournit pas d'horaires |
+| `horaires` | sept éléments, un par jour (`lundi` … `dimanche`), ou `[]` si l'API ne fournit pas d'horaires. Chaque jour : `ferme` = `true` si la station est fermée ce jour-là (`ouverture` et `fermeture` à `null`) ; `ferme` = `false` avec `ouverture` et `fermeture` à `null` = horaires non communiqués. Quand l'API donne plusieurs plages dans la journée, `ouverture` est la première ouverture et `fermeture` la dernière fermeture |
 | `services` | libellés fournis par l'API ; `[]` si aucun |
 | `carburants[].type` | `GAZOLE`, `SP95`, `SP98`, `E10`, `E85`, `GPLC` |
+| `carburants[].prix` | prix en €/L, ou `null` si le carburant est en rupture sans prix connu |
+| `carburants[].dateMaj` | date de la dernière mise à jour du prix, ou `null` s'il n'y a pas de prix |
 | `carburants[].disponible` | `false` si le carburant est en rupture (F8) |
 | `carburants[].typeRupture` | `TEMPORAIRE`, `DEFINITIVE`, ou `null` si le carburant est disponible |
 | `carburants[].debutRupture` | date de début de la rupture, ou `null` |
-| `distanceKm` | distance à la position recherchée, ou au trajet pour `/api/trajet` ; `null` pour une recherche par ville ; **absent** de `GET /api/stations/{id}` et de `GET /api/favoris` |
+| `distanceKm` | toujours présent : distance à la position recherchée, ou au trajet pour `/api/trajet` ; `null` quand il n'a pas de sens (fiche `GET /api/stations/{id}`, favoris `GET /api/favoris`, recherche par ville) |
 
 ### Utilisateur
 
@@ -184,7 +188,7 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 [
   {
     "id": "35200001",
-    "nom": "Supermarché Rennes Sud",
+    "nom": null,
     "adresse": "2 avenue des Pays-Bas",
     "ville": "Rennes",
     "codePostal": "35200",
@@ -194,13 +198,13 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
     "emplacement": "ROUTE",
     "automate24h": true,
     "horaires": [
-      { "jour": "lundi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "mardi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "mercredi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "jeudi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "vendredi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "samedi", "ouverture": "08:30", "fermeture": "20:30" },
-      { "jour": "dimanche", "ouverture": null, "fermeture": null }
+      { "jour": "lundi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "mardi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "mercredi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "jeudi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "vendredi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "samedi", "ferme": false, "ouverture": "08:30", "fermeture": "20:30" },
+      { "jour": "dimanche", "ferme": true, "ouverture": null, "fermeture": null }
     ],
     "services": ["Lavage haute pression", "Boutique alimentaire"],
     "carburants": [
@@ -238,7 +242,7 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
 [
   {
     "id": "35000001",
-    "nom": "Station Rennes Centre",
+    "nom": null,
     "adresse": "12 boulevard de la Liberté",
     "ville": "Rennes",
     "codePostal": "35000",
@@ -269,12 +273,12 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
 
 **Protégée :** non.
 
-**Réponse 200 :** une station complète, sans le champ `distanceKm`. La liste `carburants` contient **tous** les carburants de la station, y compris ceux en rupture (F8).
+**Réponse 200 :** une station complète, avec `distanceKm: null`. La liste `carburants` contient **tous** les carburants de la station, y compris ceux en rupture (F8).
 
 ```json
 {
   "id": "35000002",
-  "nom": "Relais de Cleunay",
+  "nom": null,
   "adresse": "45 rue Jules Lallemand",
   "ville": "Rennes",
   "codePostal": "35000",
@@ -284,20 +288,21 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
   "emplacement": "ROUTE",
   "automate24h": false,
   "horaires": [
-    { "jour": "lundi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "mardi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "mercredi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "jeudi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "vendredi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "samedi", "ouverture": "08:00", "fermeture": "20:00" },
-    { "jour": "dimanche", "ouverture": null, "fermeture": null }
+    { "jour": "lundi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "mardi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "mercredi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "jeudi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "vendredi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "samedi", "ferme": false, "ouverture": "08:00", "fermeture": "20:00" },
+    { "jour": "dimanche", "ferme": true, "ouverture": null, "fermeture": null }
   ],
   "services": ["Lavage automatique", "Boutique alimentaire", "Toilettes publiques"],
   "carburants": [
     { "type": "GAZOLE", "prix": 1.719, "dateMaj": "2026-11-03T13:25:00Z", "disponible": true, "typeRupture": null, "debutRupture": null },
     { "type": "E10", "prix": 1.779, "dateMaj": "2026-11-03T13:25:00Z", "disponible": true, "typeRupture": null, "debutRupture": null },
     { "type": "E85", "prix": 0.899, "dateMaj": "2026-11-02T09:15:00Z", "disponible": false, "typeRupture": "TEMPORAIRE", "debutRupture": "2026-11-02T09:15:00Z" }
-  ]
+  ],
+  "distanceKm": null
 }
 ```
 
@@ -334,7 +339,7 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
   "stations": [
     {
       "id": "35470001",
-      "nom": "Station du Pont de Bain",
+      "nom": null,
       "adresse": "5 route de Rennes",
       "ville": "Bain-de-Bretagne",
       "codePostal": "35470",
@@ -511,7 +516,7 @@ Les préférences sont renvoyées dans `utilisateur` pour que le formulaire de r
 [
   {
     "id": "44000001",
-    "nom": "Station Nantes Centre",
+    "nom": null,
     "adresse": "3 quai de la Fosse",
     "ville": "Nantes",
     "codePostal": "44000",
