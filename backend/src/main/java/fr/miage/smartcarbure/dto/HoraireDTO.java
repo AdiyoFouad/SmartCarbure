@@ -2,6 +2,7 @@ package fr.miage.smartcarbure.dto;
 
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
@@ -11,6 +12,10 @@ public class HoraireDTO {
 
     @JsonIgnore
     private boolean ferme;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime ouverture;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime fermeture;
 }
