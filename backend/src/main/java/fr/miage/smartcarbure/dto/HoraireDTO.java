@@ -10,7 +10,6 @@ import lombok.Data;
 public class HoraireDTO {
     private String jour;
 
-    @JsonIgnore
     private boolean ferme;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
