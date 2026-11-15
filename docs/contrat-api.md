@@ -510,7 +510,7 @@ Les préférences sont renvoyées dans `utilisateur` pour que le formulaire de r
 
 `GET /api/favoris`
 
-**Réponse 200 :** un tableau de stations (modèle Station, sans `distanceKm`), de la plus récemment ajoutée à la plus ancienne. Chaque élément porte en plus le champ `dateAjout`. `[]` si l'utilisateur n'a aucun favori.
+**Réponse 200 :** un tableau de stations (modèle Station, avec `distanceKm: null`), de la plus récemment ajoutée à la plus ancienne. Chaque élément porte en plus le champ `dateAjout`. `[]` si l'utilisateur n'a aucun favori.
 
 ```json
 [
@@ -530,6 +530,7 @@ Les préférences sont renvoyées dans `utilisateur` pour que le formulaire de r
     "carburants": [
       { "type": "GAZOLE", "prix": 1.779, "dateMaj": "2026-11-03T13:35:00Z", "disponible": true, "typeRupture": null, "debutRupture": null }
     ],
+    "distanceKm": null,
     "dateAjout": "2026-11-02T18:20:00Z"
   }
 ]
