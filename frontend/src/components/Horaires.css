@@ -1,1 +1,26 @@
 /* Styles du composant Horaires. */
+.horaires {
+  border-collapse: collapse;
+}
+
+.horaires th,
+.horaires td {
+  padding: var(--espace-1) var(--espace-3) var(--espace-1) 0;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.horaires__jour {
+  font-weight: 600;
+  min-width: 7rem;
+}
+
+.horaires__ferme {
+  color: var(--couleur-erreur-texte);
+  font-weight: 600;
+}
+
+.horaires--inconnus {
+  margin: 0;
+  color: var(--couleur-texte-secondaire);
+}

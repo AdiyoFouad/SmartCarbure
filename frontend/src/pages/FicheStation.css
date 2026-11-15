@@ -1,1 +1,54 @@
 /* Styles du composant FicheStation. */
+.page-fiche-station__entete {
+  margin-bottom: var(--espace-5);
+}
+
+.page-fiche-station__titre {
+  margin: 0 0 var(--espace-1);
+  font-size: 1.6rem;
+}
+
+.page-fiche-station__lieu {
+  margin: 0 0 var(--espace-2);
+  color: var(--couleur-texte-secondaire);
+}
+
+.page-fiche-station__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
+}
+
+.page-fiche-station__grille {
+  display: grid;
+  gap: var(--espace-4);
+}
+
+@media (min-width: 900px) {
+  .page-fiche-station__grille {
+    grid-template-columns: 3fr 2fr;
+    align-items: start;
+  }
+
+  .page-fiche-station__carte {
+    grid-column: 1 / -1;
+  }
+}
+
+.page-fiche-station__bloc {
+  padding: var(--espace-4);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  background: var(--couleur-surface);
+  min-width: 0;
+}
+
+.page-fiche-station__bloc h2 {
+  margin: 0 0 var(--espace-3);
+  font-size: 1.15rem;
+}
+
+.page-fiche-station__services {
+  margin: 0;
+  padding-left: var(--espace-5);
+}

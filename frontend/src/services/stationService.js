@@ -1,3 +1,7 @@
+import { api, ApiError } from './api';
+import { MODE_DEMO, reponseSimulee } from './mock';
+import { STATIONS } from '../data/stations';
+
 /**
  * Recherche des stations par ville (ou code postal), ou autour d'une position.
  * - par ville : GET /api/stations?ville=&carburant=&tri=
@@ -15,11 +19,21 @@ export async function rechercherStations(criteres) {
 
 /**
  * Récupère la fiche complète d'une station : GET /api/stations/{id}.
- * TODO : à implémenter.
+ * Tous les carburants sont renvoyés, y compris ceux en rupture (F8) ; distanceKm vaut null.
+ * En mode démonstration (MODE_DEMO), cherche la station dans data/stations.js.
  * @param {string} id identifiant de la station
- * @returns {Promise<object>} station
+ * @returns {Promise<object>} station au format du contrat d'API
  * @throws {ApiError} 404 si la station n'existe pas, 503 si le service est indisponible
  */
 export async function obtenirStation(id) {
-  // TODO
+  if (MODE_DEMO) {
+    return reponseSimulee(() => {
+      const station = STATIONS.find((s) => s.id === String(id));
+      if (!station) {
+        throw new ApiError(404, 'Station introuvable.');
+      }
+      return station;
+    });
+  }
+  return api.get(`/stations/${encodeURIComponent(id)}`);
 }

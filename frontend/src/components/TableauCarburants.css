@@ -1,1 +1,43 @@
 /* Styles du composant TableauCarburants. */
+.tableau-carburants {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--couleur-surface);
+}
+
+.tableau-carburants th,
+.tableau-carburants td {
+  padding: var(--espace-2) var(--espace-3);
+  border-bottom: 1px solid var(--couleur-bordure);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tableau-carburants thead th {
+  font-size: 0.9rem;
+  color: var(--couleur-texte-secondaire);
+}
+
+.tableau-carburants__prix {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tableau-carburants__prix--indisponible {
+  color: var(--couleur-texte-secondaire);
+  font-style: italic;
+}
+
+.tableau-carburants__ligne--rupture th {
+  color: var(--couleur-texte-secondaire);
+}
+
+.tableau-carburants__maj {
+  font-size: 0.9rem;
+  color: var(--couleur-texte-secondaire);
+}
+
+.tableau-carburants__vide {
+  margin: 0;
+  color: var(--couleur-texte-secondaire);
+}

@@ -1,1 +1,21 @@
 /* Styles du composant BadgeRupture. */
+.badge-rupture {
+  display: inline-block;
+  padding: 0.125rem var(--espace-2);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-rupture--temporaire {
+  background: #fdf0e3;
+  color: var(--couleur-accent-texte);
+  border: 1px solid var(--couleur-accent);
+}
+
+.badge-rupture--definitive {
+  background: #fbe9e7;
+  color: var(--couleur-erreur-texte);
+  border: 1px solid var(--couleur-erreur);
+}
