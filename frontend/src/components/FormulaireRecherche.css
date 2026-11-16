@@ -1,1 +1,237 @@
-/* Styles du composant FormulaireRecherche. */
+.formulaire-recherche {
+	margin-top: 1.75rem;
+	padding: 1.1rem;
+	border: 1px solid #d5ddd8;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 12px 30px rgb(22 54 41 / 9%);
+}
+
+.formulaire-recherche__grille {
+	display: grid;
+	grid-template-columns: minmax(15rem, 1.5fr) minmax(10rem, 1fr) minmax(9rem, 0.8fr) auto;
+	align-items: end;
+	gap: 0.8rem;
+}
+
+.formulaire-recherche__champ {
+	min-width: 0;
+}
+
+.formulaire-recherche__champ > label {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 0.4rem;
+	color: #46564e;
+	font-size: 0.72rem;
+	font-weight: 700;
+}
+
+.formulaire-recherche__champ input:not([type='range']),
+.formulaire-recherche__select select,
+.formulaire-recherche__localiser,
+.formulaire-recherche__submit {
+	width: 100%;
+	min-height: 2.85rem;
+	border: 1px solid #cbd6ce;
+	border-radius: 6px;
+	background: #fff;
+	color: #20342b;
+	font: inherit;
+	font-size: 0.88rem;
+}
+
+.formulaire-recherche__champ input:not([type='range']) {
+	padding: 0 0.75rem;
+}
+
+.formulaire-recherche__champ input::placeholder {
+	color: #75827b;
+}
+
+.formulaire-recherche__lieu-controles {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.formulaire-recherche__lieu-controles > input,
+.formulaire-recherche__position {
+	flex: 1;
+	min-width: 0;
+}
+
+.formulaire-recherche__position {
+	display: flex;
+	min-height: 2.85rem;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0 0.65rem;
+	border-radius: 6px;
+	background: #e8f1eb;
+	color: #164b3b;
+	font-size: 0.82rem;
+	font-weight: 650;
+}
+
+.formulaire-recherche__position span,
+.formulaire-recherche__localiser,
+.formulaire-recherche__submit {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
+}
+
+.formulaire-recherche__position svg,
+.formulaire-recherche__localiser svg,
+.formulaire-recherche__submit svg,
+.formulaire-recherche__select > svg {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+}
+
+.formulaire-recherche__position button {
+	display: grid;
+	width: 2rem;
+	height: 2rem;
+	flex: 0 0 auto;
+	place-items: center;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.formulaire-recherche__position button svg {
+	width: 0.95rem;
+	height: 0.95rem;
+}
+
+.formulaire-recherche__localiser {
+	width: auto;
+	flex: 0 0 auto;
+	padding: 0 0.7rem;
+	cursor: pointer;
+}
+
+.formulaire-recherche__localiser:hover {
+	border-color: #b6d2bf;
+	background: #e8f1eb;
+	color: #164b3b;
+}
+
+.formulaire-recherche__select {
+	position: relative;
+}
+
+.formulaire-recherche__select > svg {
+	position: absolute;
+	top: 50%;
+	left: 0.7rem;
+	color: #6b7b72;
+	pointer-events: none;
+	transform: translateY(-50%);
+}
+
+.formulaire-recherche__select select {
+	padding: 0 0.65rem 0 2.1rem;
+}
+
+.formulaire-recherche__rayon input {
+	display: block;
+	width: 100%;
+	height: 2.85rem;
+	margin: 0;
+	accent-color: #1b7a43;
+	cursor: pointer;
+}
+
+.formulaire-recherche__submit {
+	width: auto;
+	min-width: 8.5rem;
+	padding: 0 1rem;
+	border-color: #145c32;
+	background: #1b7a43;
+	color: #fff;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.formulaire-recherche__submit:hover:not(:disabled) {
+	background: #145c32;
+}
+
+.formulaire-recherche__submit:disabled {
+	cursor: wait;
+	opacity: 0.7;
+}
+
+.formulaire-recherche__erreur {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.45rem;
+	margin: 0.75rem 0 0;
+	color: #a12a1e;
+	font-size: 0.84rem;
+}
+
+.formulaire-recherche__erreur svg {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+	margin-top: 0.15rem;
+}
+
+.formulaire-recherche--compact {
+	margin-top: 0;
+	padding: 0.85rem;
+}
+
+@media (max-width: 850px) {
+	.formulaire-recherche__grille {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.formulaire-recherche__lieu {
+		grid-column: 1 / -1;
+	}
+
+	.formulaire-recherche__submit {
+		min-height: 2.85rem;
+	}
+}
+
+@media (max-width: 520px) {
+	.formulaire-recherche {
+		padding: 0.85rem;
+	}
+
+	.formulaire-recherche__grille {
+		grid-template-columns: 1fr;
+	}
+
+	.formulaire-recherche__lieu {
+		grid-column: auto;
+	}
+
+	.formulaire-recherche__localiser {
+		width: 2.85rem;
+		padding: 0;
+	}
+
+	.formulaire-recherche__localiser span {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	.formulaire-recherche__submit {
+		width: 100%;
+	}
+}
