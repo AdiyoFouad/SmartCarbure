@@ -4,6 +4,7 @@ import fr.miage.smartcarbure.client.CarburantApiClient;
 import fr.miage.smartcarbure.dto.StationDTO;
 import fr.miage.smartcarbure.exception.StationIntrouvableException;
 import fr.miage.smartcarbure.mapper.StationMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,15 +14,11 @@ import org.springframework.stereotype.Service;
  * API Prix des carburants en panne → ApiIndisponibleException (503), levée par CarburantApiClient.</p>
  */
 @Service
+@RequiredArgsConstructor
 public class StationService {
 
     private final CarburantApiClient carburantApiClient;
     private final StationMapper stationMapper;
-
-    public StationService(CarburantApiClient carburantApiClient, StationMapper stationMapper) {
-        this.carburantApiClient = carburantApiClient;
-        this.stationMapper = stationMapper;
-    }
 
     /**
      * Fiche complète d'une station : tous ses carburants, ruptures comprises.

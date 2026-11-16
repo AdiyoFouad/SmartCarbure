@@ -2,6 +2,7 @@ package fr.miage.smartcarbure.controller;
 
 import fr.miage.smartcarbure.dto.StationDTO;
 import fr.miage.smartcarbure.service.StationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,14 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/stations")
+@RequiredArgsConstructor
 public class StationController {
 
+    /** Injection par constructeur (@RequiredArgsConstructor) ; la recherche (RechercheService) sera ajoutée ici. */
     private final StationService stationService;
-
-    /** Injection par constructeur ; la recherche (RechercheService) sera ajoutée ici. */
-    public StationController(StationService stationService) {
-        this.stationService = stationService;
-    }
 
     /** GET /api/stations/{id} : fiche complète d'une station (F7, F8). */
     @GetMapping("/{id}")
