@@ -1,1 +1,63 @@
 /* Styles du composant MessageEtat. */
+.message-etat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espace-3);
+  padding: var(--espace-5) var(--espace-4);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  background: var(--couleur-surface);
+  text-align: center;
+}
+
+.message-etat__texte {
+  margin: 0;
+  color: var(--couleur-texte-secondaire);
+}
+
+.message-etat--erreur {
+  border-color: var(--couleur-erreur);
+}
+
+.message-etat--erreur .message-etat__texte {
+  color: var(--couleur-erreur-texte);
+  font-weight: 600;
+}
+
+.message-etat__indicateur {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--couleur-principale-claire);
+  border-top-color: var(--couleur-principale);
+  border-radius: 50%;
+  animation: message-etat-rotation 0.8s linear infinite;
+}
+
+@keyframes message-etat-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message-etat__indicateur {
+    animation: none;
+  }
+}
+
+.message-etat__bouton {
+  min-height: 2.5rem;
+  padding: var(--espace-2) var(--espace-4);
+  border: none;
+  border-radius: var(--rayon);
+  background: var(--couleur-principale);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.message-etat__bouton:hover {
+  background: var(--couleur-principale-foncee);
+}

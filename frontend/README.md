@@ -13,7 +13,28 @@ npm run build      # construire la version de production dans dist/
 npm run preview    # servir la version construite
 ```
 
-`VITE_USE_MOCK=true` dans `.env` fait renvoyer aux services les données fictives de `src/data` au lieu d'appeler le backend. Ce mode démonstration reste à implémenter.
+## Mode démonstration
+
+`VITE_USE_MOCK=true` dans `.env` fait renvoyer aux services les données fictives de `src/data` au lieu d'appeler le backend. Avec `VITE_USE_MOCK=false` (ou sans `.env`), les services appellent le vrai backend sur `/api`. Il faut relancer `npm run dev` après avoir modifié `.env`.
+
+- Les pages ne savent pas d'où viennent les données : seuls les services lisent `MODE_DEMO` (`services/mock.js`).
+- Un service passe par `reponseSimulee(() => …)` : réponse après 300 ms, copie des données fictives, et une `ApiError` levée dans la fonction (par exemple un 404 pour un id inconnu) est propagée telle quelle.
+- `src/data/stations.js` contient 6 stations au format exact du contrat (Rennes et Nantes) : station complète, ruptures, station d'autoroute aux horaires non communiqués, jour fermé.
+- **Simuler une panne :** ajouter `?simuler=503` à l'URL de la page (par exemple `http://localhost:3000/stations/35000101?simuler=503`). Les appels échouent en 503 pendant 3 secondes, puis réussissent : on peut tester le bouton « Réessayer ».
+
+## Fichiers partagés
+
+Ces fichiers servent à plusieurs pages : gardez-les génériques et prévenez l'équipe avant de changer leur comportement.
+
+| Fichier | Rôle |
+|---|---|
+| `services/api.js` | client HTTP unique, `ApiError` (statut + message), `MESSAGES_ERREUR` par code |
+| `services/mock.js` | `MODE_DEMO`, `reponseSimulee`, panne simulée `?simuler=503` |
+| `hooks/useRequete.js` | `const { donnees, chargement, erreur, relancer } = useRequete(() => service(x), [x])` |
+| `components/MessageEtat.jsx` | `<MessageEtat type="chargement" \| "vide" \| "erreur" message="…" onReessayer={relancer} />` (`role="status"`) |
+| `utils/format.js` | `formaterPrix` (« 1,789 € », « Prix indisponible »), `formaterDistance`, `formaterDateMaj`, `formaterDate` |
+| `components/Badge*.jsx`, `TableauCarburants.jsx`, `Horaires.jsx` | affichage d'une station au format du contrat |
+| `data/stations.js` | stations fictives du mode démonstration |
 
 ## Organisation de `src/`
 
