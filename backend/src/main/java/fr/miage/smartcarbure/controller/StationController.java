@@ -12,13 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import fr.miage.smartcarbure.dto.StationDTO;
 import fr.miage.smartcarbure.service.StationService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Expose les routes REST de recherche et de détail des stations.
@@ -32,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StationController {
 
 	private final RechercheService rechercheService;
+	private final StationService stationService;
 
 	/** Recherche par coordonnées (F1) ou par ville/code postal (F2). */
 	@GetMapping
@@ -51,9 +47,6 @@ public class StationController {
 		criteres.setTri(tri == null ? TypeTri.PRIX : tri);
 		return rechercheService.rechercher(criteres);
 	}
-
-    /** Injection par constructeur (@RequiredArgsConstructor) ; la recherche (RechercheService) sera ajoutée ici. */
-    private final StationService stationService;
 
     /** GET /api/stations/{id} : fiche complète d'une station (F7, F8). */
     @GetMapping("/{id}")

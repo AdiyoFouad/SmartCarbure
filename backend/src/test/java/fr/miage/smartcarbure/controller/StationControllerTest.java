@@ -5,10 +5,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import fr.miage.smartcarbure.client.CarburantApiClient;
 import fr.miage.smartcarbure.client.StationJsonConverter;
+import fr.miage.smartcarbure.dto.StationDTO;
+import fr.miage.smartcarbure.enums.Carburant;
+import fr.miage.smartcarbure.enums.TypeTri;
 import fr.miage.smartcarbure.exception.ApiIndisponibleException;
 import fr.miage.smartcarbure.exception.GlobalExceptionHandler;
 import fr.miage.smartcarbure.mapper.DepartementMapper;
@@ -19,6 +20,7 @@ import fr.miage.smartcarbure.mapper.RegionMapper;
 import fr.miage.smartcarbure.mapper.StationMapper;
 import fr.miage.smartcarbure.mapper.VilleMapper;
 import fr.miage.smartcarbure.model.Station;
+import fr.miage.smartcarbure.service.RechercheService;
 import fr.miage.smartcarbure.service.StationService;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,29 +28,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.nullValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
-import fr.miage.smartcarbure.dto.StationDTO;
-import fr.miage.smartcarbure.enums.Carburant;
-import fr.miage.smartcarbure.enums.TypeTri;
-import fr.miage.smartcarbure.exception.GlobalExceptionHandler;
-import fr.miage.smartcarbure.service.RechercheService;
 
 /**
  * Tests de GET /api/stations/{id} sans réseau ni base de données : MockMvc en standaloneSetup avec
@@ -61,8 +54,9 @@ class StationControllerTest {
     private static final String ID = "35000025";
 
     private CarburantApiClient client;
-	private final RechercheService service = mock(RechercheService.class);
-	private MockMvc mockMvc;
+    private final RechercheService rechercheService = mock(RechercheService.class);
+    private StationService stationService;
+    private MockMvc mockMvc;
 
     @BeforeEach
     void creerMockMvc() {
@@ -70,8 +64,9 @@ class StationControllerTest {
         StationMapper mapper = new StationMapper(new PositionMapper(),
                 new VilleMapper(new DepartementMapper(new RegionMapper())),
                 new HoraireMapper(), new PrixCarburantMapper());
+        stationService = new StationService(client, mapper);
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new StationController(new StationService(client, mapper)))
+                .standaloneSetup(new StationController(rechercheService, stationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -124,7 +119,7 @@ class StationControllerTest {
 	void rechercheAutourDunePositionTransmetLesCriteresEtLeTriParDefaut() throws Exception {
 		StationDTO station = new StationDTO();
 		station.setDistanceKm(3.6);
-		when(service.rechercher(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(station));
+		when(rechercheService.rechercher(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(station));
 
 		mockMvc.perform(get("/api/stations")
 						.param("lat", "48.1173")
@@ -135,7 +130,7 @@ class StationControllerTest {
 				.andExpect(jsonPath("$").isArray())
 				.andExpect(jsonPath("$[0].distanceKm").value(3.6));
 
-		verify(service).rechercher(argThat(criteres ->
+		verify(rechercheService).rechercher(argThat(criteres ->
 				criteres.getLat() == 48.1173
 						&& criteres.getLon() == -1.6778
 						&& criteres.getRayon() == 10
@@ -145,7 +140,7 @@ class StationControllerTest {
 
 	@Test
 	void rechercheParVilleTransmetLesParametresF2() throws Exception {
-		when(service.rechercher(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(new StationDTO()));
+		when(rechercheService.rechercher(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(new StationDTO()));
 
 		mockMvc.perform(get("/api/stations")
 						.param("ville", "Rennes")
@@ -155,7 +150,7 @@ class StationControllerTest {
 				.andExpect(jsonPath("$").isArray())
 				.andExpect(jsonPath("$[0].distanceKm").value(nullValue()));
 
-		verify(service).rechercher(argThat(criteres ->
+		verify(rechercheService).rechercher(argThat(criteres ->
 				"Rennes".equals(criteres.getVille())
 						&& criteres.getCarburant() == Carburant.E10
 						&& criteres.getTri() == TypeTri.DISTANCE));
@@ -163,7 +158,7 @@ class StationControllerTest {
 
 	@Test
 	void parametresObligatoiresEtBornesSontValidesParLeService() throws Exception {
-		when(service.rechercher(org.mockito.ArgumentMatchers.any()))
+		when(rechercheService.rechercher(org.mockito.ArgumentMatchers.any()))
 				.thenThrow(new IllegalArgumentException("Le rayon doit être compris entre 1 et 50 km."));
 
 		mockMvc.perform(get("/api/stations")
@@ -184,7 +179,7 @@ class StationControllerTest {
 				.andExpect(jsonPath("$.statut").value(400))
 				.andExpect(jsonPath("$.message").value(containsString("GAZOLE")));
 
-		verifyNoInteractions(service);
+		verifyNoInteractions(rechercheService);
 	}
 
 	@Test
@@ -197,12 +192,12 @@ class StationControllerTest {
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.statut").value(400));
 
-		verifyNoInteractions(service);
+		verifyNoInteractions(rechercheService);
 	}
 
 	@Test
 	void absenceDeVilleEtCoordonneesDonne400() throws Exception {
-		when(service.rechercher(org.mockito.ArgumentMatchers.any()))
+		when(rechercheService.rechercher(org.mockito.ArgumentMatchers.any()))
 				.thenThrow(new IllegalArgumentException("La latitude et la longitude sont obligatoires hors recherche par ville."));
 
 		mockMvc.perform(get("/api/stations").param("carburant", "GAZOLE"))
