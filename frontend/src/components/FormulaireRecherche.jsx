@@ -10,6 +10,11 @@ function FormulaireRecherche({ initial, compact = false }) {
   const { utilisateur } = useAuth();
   const navigate = useNavigate();
   const { position, chargement, erreur: erreurGeo, localiser } = useGeolocalisation();
+  const positionInitiale = initial?.lat != null && initial?.lon != null &&
+    Number.isFinite(Number(initial.lat)) && Number.isFinite(Number(initial.lon))
+    ? { latitude: Number(initial.lat), longitude: Number(initial.lon) }
+    : null;
+  const positionRecherche = position ?? positionInitiale;
   const [geo, setGeo] = useState(initial?.mode === 'geo');
   const [q, setQ] = useState(initial?.q ?? '');
   const [carburant, setCarburant] = useState(initial?.carburant ?? utilisateur?.carburantPrefere ?? CARBURANT_PAR_DEFAUT);
@@ -18,7 +23,7 @@ function FormulaireRecherche({ initial, compact = false }) {
 
   const soumettre = (event) => {
     event.preventDefault();
-    if (geo && !position) {
+    if (geo && !positionRecherche) {
       if (!chargement) localiser();
       setErreur(erreurGeo || 'Autorisez la localisation ou indiquez une ville ou un code postal.');
       return;
@@ -31,8 +36,8 @@ function FormulaireRecherche({ initial, compact = false }) {
     setErreur('');
     const search = new URLSearchParams({ mode: geo ? 'geo' : 'ville', carburant, rayon: String(rayon) });
     if (geo) {
-      search.set('lat', String(position.latitude));
-      search.set('lon', String(position.longitude));
+      search.set('lat', String(positionRecherche.latitude));
+      search.set('lon', String(positionRecherche.longitude));
     } else {
       search.set('q', q.trim());
     }
