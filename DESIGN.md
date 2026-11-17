@@ -118,21 +118,27 @@ Les routes REST exposées par les contrôleurs sont décrites dans le contrat d'
 
 ![Diagramme de classes](docs/diagrammes/classes.png)
 
-*À mettre à jour dans le diagramme : ajouter la classe `Favori` entre `Utilisateur` et `Station`, et retirer l'association `Utilisateur – Trajet` (les trajets ne sont pas enregistrés). Les tableaux ci-dessous font foi en attendant.*
+Le diagramme reprend les classes des packages `model` et `enums`. Sa source est [`docs/diagrammes/classes.puml`](docs/diagrammes/classes.puml). Après une modification, on régénère l'image avec PlantUML (le `plantuml.jar` est fourni par l'extension PlantUML de VS Code) :
+
+```
+java -jar plantuml.jar -charset UTF-8 -tpng docs/diagrammes/classes.puml
+```
 
 ### 3.3 Classes principales et responsabilités
 
 | Classe | Responsabilité |
 |---|---|
-| `Station` | Point de vente : identifiant de l'API, nom, horaires, automate 24h/24, emplacement (route ou autoroute) |
+| `Station` | Point de vente : identifiant de l'API, position, ville, horaires, services, carburants vendus, automate 24h/24, emplacement (route ou autoroute). `nom` vaut toujours `null` : l'API ne fournit pas de nom de station |
 | `Position` | Coordonnées GPS (latitude, longitude) et adresse ; utilisée pour une station et pour les points d'un trajet |
 | `Ville`, `Departement`, `Region` | Découpage géographique ; permet de rechercher par ville et de comparer des zones |
-| `Service` | Service proposé par une station (lavage, boutique, gonflage…) |
-| `Carburant` | Type de carburant (Gazole, SP95, SP98, E10, E85, GPLc) |
-| `PrixCarburant` | Classe d'association entre `Station` et `Carburant` : prix, date de mise à jour, disponibilité, type et début de rupture |
-| `Utilisateur` | Compte utilisateur : identité, email, mot de passe haché, rayon de recherche préféré |
-| `Favori` | Station favorite d'un utilisateur : seul l'identifiant de la station (celui de l'API) est enregistré en base |
-| `Trajet` | Itinéraire entre une position de départ et une position d'arrivée ; calculé à chaque recherche, jamais enregistré |
+| `Horaire` | Horaires d'un jour de la semaine : fermé ou non, heure d'ouverture et heure de fermeture |
+| `ServiceStation` | Service proposé par une station (lavage, boutique, gonflage…) |
+| `PrixCarburant` | Un carburant vendu par une station : prix, date de mise à jour, disponibilité, type et début de rupture |
+| `Utilisateur` | Compte utilisateur (entité JPA) : nom, email, mot de passe haché, carburant et rayon préférés |
+| `Favori` | Station favorite d'un utilisateur (entité JPA, à écrire en V2 : L5-05) : seul l'identifiant de la station (celui de l'API) est enregistré en base |
+| `Trajet` | Itinéraire : position de départ, position d'arrivée, points de la route et longueur ; calculé à chaque recherche, jamais enregistré |
+| `StationSurTrajet` | Station trouvée le long d'un trajet, avec sa distance à la route |
+| `Carburant` | Énumération : `GAZOLE`, `SP95`, `SP98`, `E10`, `E85`, `GPLC`, avec le libellé utilisé par l'API (`Gazole`, `GPLc`…) |
 | `TypeEmplacement` | Énumération : `ROUTE` ou `AUTOROUTE` (champ `pop` de l'API : R ou A) |
 | `TypeRupture` | Énumération : `TEMPORAIRE` ou `DEFINITIVE` |
 
@@ -140,13 +146,15 @@ Les routes REST exposées par les contrôleurs sont décrites dans le contrat d'
 
 | Association | Multiplicité | Signification |
 |---|---|---|
-| Station – Ville | * – 1 | Une station appartient à une ville |
-| Ville – Departement – Region | * – 1 | Une ville est dans un département, lui-même dans une région |
-| Station – Service | * – * | Une station propose plusieurs services |
-| Station – Carburant (via `PrixCarburant`) | * – * | Une station vend plusieurs carburants, chacun avec son prix et sa disponibilité |
-| Station – Position | 0..1 – 1 | Une station est située à une position |
-| Trajet – Position | départ et arrivée | Un trajet a une position de départ et une position d'arrivée |
-| Utilisateur – Station (via `Favori`) | 1 – * favoris, chacun vers 1 station | Un utilisateur a des stations favorites |
+| Station – Position | 1 – 0..1 | Une station est située à une position (coordonnées et adresse) |
+| Station – Ville | * – 0..1 | Une station appartient à une ville (absente si l'API ne la donne pas) |
+| Ville – Departement – Region | * – 0..1 | Une ville est dans un département, lui-même dans une région |
+| Station – Horaire | 1 – 0..* | Une station a ses horaires, jour par jour |
+| Station – ServiceStation | 1 – 0..* | Une station propose plusieurs services |
+| Station – PrixCarburant | 1 – 0..* | Une station vend plusieurs carburants, chacun avec son prix et sa disponibilité |
+| Trajet – Position | départ 1, arrivée 1, points 2..* | Un trajet relie un départ et une arrivée en suivant une liste de points |
+| StationSurTrajet – Station | * – 1 | Une station trouvée le long d'un trajet, avec sa distance à la route |
+| Utilisateur – Favori | 1 – 0..* | Un utilisateur a des favoris ; chaque favori garde l'identifiant d'une station |
 | Utilisateur – Carburant | * – 0..1 | Un utilisateur peut choisir un carburant préféré |
 
 ### 3.5 Données persistées

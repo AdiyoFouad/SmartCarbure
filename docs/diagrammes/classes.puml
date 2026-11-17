@@ -1,0 +1,154 @@
+@startuml classes
+' Source de docs/diagrammes/classes.png (modèle du backend : packages model et enums).
+' Après une modification, régénérer l'image avec PlantUML (commande dans DESIGN.md).
+
+title SmartCarbure - Diagramme de classes (modèle du backend)
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+package "Données lues dans l'API Prix des carburants (non stockées)" {
+
+  class Station {
+    - id : String
+    - nom : String
+    - emplacement : TypeEmplacement
+    - automate24h : boolean
+    + getDepartement() : Departement
+    + getRegion() : Region
+  }
+
+  class PrixCarburant {
+    - carburant : Carburant
+    - prix : Double
+    - dateMaj : LocalDateTime
+    - disponible : boolean
+    - typeRupture : TypeRupture
+    - debutRupture : LocalDateTime
+  }
+
+  class Position {
+    - latitude : Double
+    - longitude : Double
+    - adresse : String
+  }
+
+  class Ville {
+    - nom : String
+    - codePostal : String
+  }
+
+  class Departement {
+    - code : String
+    - nom : String
+  }
+
+  class Region {
+    - code : String
+    - nom : String
+  }
+
+  class Horaire {
+    - jour : DayOfWeek
+    - ferme : boolean
+    - ouverture : LocalTime
+    - fermeture : LocalTime
+  }
+
+  class ServiceStation {
+    - nom : String
+  }
+}
+
+package "Itinéraire (F6, calculé à chaque demande)" {
+
+  class Trajet {
+    - distanceKm : double
+  }
+
+  class StationSurTrajet <<record>> {
+    - distanceKm : double
+  }
+}
+
+package "Données stockées dans PostgreSQL" {
+
+  class Utilisateur <<Entity>> {
+    - id : Long
+    - nom : String
+    - email : String
+    - motDePasse : String
+    - carburantPrefere : Carburant
+    - rayonPrefere : Integer
+    - createdAt : LocalDateTime
+    - updatedAt : LocalDateTime
+  }
+
+  class Favori <<Entity>> {
+    - id : Long
+    - idStation : String
+    - dateAjout : LocalDateTime
+  }
+}
+
+enum Carburant {
+  GAZOLE
+  SP95
+  SP98
+  E10
+  E85
+  GPLC
+  --
+  - libelle : String
+}
+
+enum TypeEmplacement {
+  ROUTE
+  AUTOROUTE
+}
+
+enum TypeRupture {
+  TEMPORAIRE
+  DEFINITIVE
+}
+
+' Composition d'une station
+Station *-- "0..1" Position : position
+Station --> "0..1" Ville : ville
+Station *-- "0..*" Horaire : horaires
+Station *-- "0..*" ServiceStation : services
+Station *-- "0..*" PrixCarburant : carburants
+
+' Découpage administratif
+Ville --> "0..1" Departement : departement
+Departement --> "0..1" Region : region
+
+' Énumérations utilisées
+Station ..> TypeEmplacement
+PrixCarburant ..> Carburant
+PrixCarburant ..> TypeRupture
+Utilisateur ..> Carburant : carburantPrefere
+
+' Itinéraire
+Trajet --> "1" Position : depart
+Trajet --> "1" Position : arrivee
+Trajet *-- "2..*" Position : points
+StationSurTrajet --> "1" Station : station
+
+' Favoris
+Utilisateur "1" -- "0..*" Favori : possède >
+Favori ..> Station : idStation
+
+note bottom of Favori
+  À écrire en V2 (L5-05) : la classe est
+  encore vide sur main. On ne stocke que
+  l'identifiant de la station, pas la station.
+end note
+
+note top of Station
+  nom vaut toujours null :
+  l'API ne fournit pas de nom de station.
+end note
+
+@enduml
