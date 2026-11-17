@@ -25,6 +25,57 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
+describe('rechercherStations, mode réel', () => {
+  test('appelle GET /api/stations avec les critères de ville', async () => {
+    const stations = [{ id: '35000001', distanceKm: null }];
+    const fetch = vi.fn().mockResolvedValue(reponse(200, stations));
+    vi.stubGlobal('fetch', fetch);
+    const { rechercherStations } = await chargerService(false);
+
+    await expect(rechercherStations({
+      ville: 'Rennes', rayon: 10, carburant: 'GAZOLE', tri: 'PRIX',
+    })).resolves.toEqual(stations);
+
+    expect(fetch.mock.calls[0][0]).toBe('/api/stations?ville=Rennes&rayon=10&carburant=GAZOLE&tri=PRIX');
+    expect(fetch.mock.calls[0][1].method).toBe('GET');
+  });
+
+  test('transmet les coordonnées et le rayon en recherche géolocalisée', async () => {
+    const fetch = vi.fn().mockResolvedValue(reponse(200, []));
+    vi.stubGlobal('fetch', fetch);
+    const { rechercherStations } = await chargerService(false);
+
+    await rechercherStations({
+      latitude: '48.1173', longitude: '-1.6778', rayon: 10, carburant: 'GAZOLE', tri: 'DISTANCE',
+    });
+
+    expect(fetch.mock.calls[0][0]).toBe('/api/stations?lat=48.1173&lon=-1.6778&rayon=10&carburant=GAZOLE&tri=DISTANCE');
+  });
+
+  test('propage une indisponibilité du backend sous forme ApiError 503', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(reponse(503, { message: 'Prix indisponibles.' })));
+    const { rechercherStations } = await chargerService(false);
+
+    await expect(rechercherStations({ ville: 'Rennes' })).rejects.toMatchObject({
+      name: 'ApiError', statut: 503,
+    });
+  });
+});
+
+describe('rechercherStations, mode démonstration', () => {
+  test('filtre les stations fictives par ville sans appeler le backend', async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    const { rechercherStations } = await chargerService(true);
+
+    const stations = await rechercherStations({ ville: 'Rennes', carburant: 'GAZOLE' });
+
+    expect(stations).toHaveLength(3);
+    expect(stations.every((station) => station.ville === 'Rennes')).toBe(true);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('obtenirStation, mode réel', () => {
   test('appelle GET /api/stations/{id} et renvoie la station', async () => {
     const fetch = vi.fn().mockResolvedValue(reponse(200, { id: '35000001', nom: null }));

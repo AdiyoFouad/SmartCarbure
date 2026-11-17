@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Download, List, Map as MapIcon } from 'lucide-react';
-import { STATIONS } from '../data/stations';
 import { CARBURANT_PAR_DEFAUT, CODES_CARBURANTS, libelleCarburant } from '../constants/carburants';
 import FormulaireRecherche from '../components/FormulaireRecherche';
 import StationCard from '../components/StationCard';
 import CarteStations from '../components/CarteStations';
 import MessageEtat from '../components/MessageEtat';
+import { useRequete } from '../hooks/useRequete';
+import { MESSAGES_ERREUR } from '../services/api';
+import { rechercherStations } from '../services/stationService';
 import './Resultats.css';
 
 const CENTRES_VILLES = {
@@ -21,16 +23,6 @@ function normaliser(texte) {
     .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLocaleLowerCase('fr-FR');
-}
-
-function distanceEntre(a, b) {
-  const radians = (degres) => (degres * Math.PI) / 180;
-  const latitude = radians(b.latitude - a.latitude);
-  const longitude = radians(b.longitude - a.longitude);
-  const valeur =
-    Math.sin(latitude / 2) ** 2 +
-    Math.cos(radians(a.latitude)) * Math.cos(radians(b.latitude)) * Math.sin(longitude / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(valeur), Math.sqrt(1 - valeur));
 }
 
 function prixDe(station, carburant) {
@@ -61,58 +53,33 @@ function Resultats() {
   const tri = searchParams.get('tri') === 'distance' ? 'distance' : 'prix';
   const latitudeInitiale = searchParams.get('lat');
   const longitudeInitiale = searchParams.get('lon');
+  const latitude = Number(latitudeInitiale);
+  const longitude = Number(longitudeInitiale);
+  const positionValide = Number.isFinite(latitude) && Number.isFinite(longitude);
+  const centreVille = Object.values(CENTRES_VILLES).find(
+    (ville) => normaliser(ville.nom) === normaliser(q) || ville.codePostal.startsWith(q.trim()),
+  );
+  const centre = mode === 'geo' && positionValide
+    ? { latitude, longitude }
+    : centreVille ? { latitude: centreVille.latitude, longitude: centreVille.longitude } : undefined;
+  const lieu = mode === 'geo'
+    ? 'votre position'
+    : centreVille ? `${centreVille.nom} (${centreVille.codePostal})` : q;
+  const criteres = mode === 'geo'
+    ? { latitude: latitudeInitiale, longitude: longitudeInitiale, rayon, carburant, tri: tri.toUpperCase() }
+    : { ville: q.trim(), rayon, carburant, tri: tri.toUpperCase() };
+  const rechercheValide = mode === 'geo' ? positionValide : Boolean(q.trim());
+  const appelRecherche = () => rechercheValide ? rechercherStations(criteres) : Promise.resolve([]);
+  const { donnees, chargement, erreur, relancer } = useRequete(appelRecherche, [
+    mode, q, latitudeInitiale, longitudeInitiale, carburant, rayon, tri,
+  ]);
+  const resultats = Array.isArray(donnees) ? donnees : [];
 
-  const recherche = useMemo(() => {
-    let centre;
-    let lieu;
-
-    if (mode === 'geo') {
-      const latitude = Number(searchParams.get('lat'));
-      const longitude = Number(searchParams.get('lon'));
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        return { centre: null, lieu: 'votre position', resultats: [], erreur: 'position' };
-      }
-      centre = { latitude, longitude };
-      lieu = 'votre position';
-    } else {
-      const requete = normaliser(q);
-      const stationCorrespondante = STATIONS.find(
-        (station) => normaliser(station.ville) === requete || station.codePostal.startsWith(requete),
-      );
-      if (!requete || !stationCorrespondante) {
-        return { centre: null, lieu: q, resultats: [], erreur: requete ? 'ville' : 'saisie' };
-      }
-      const ville = Object.values(CENTRES_VILLES).find(
-        (item) => normaliser(item.nom) === normaliser(stationCorrespondante.ville),
-      );
-      if (!ville) return { centre: null, lieu: q, resultats: [], erreur: 'ville' };
-      centre = { latitude: ville.latitude, longitude: ville.longitude };
-      lieu = `${ville.nom} (${ville.codePostal})`;
-    }
-
-    const resultats = STATIONS.filter((station) => station.position && prixDe(station, carburant) != null)
-      .map((station) => ({
-        ...station,
-        distanceKm: distanceEntre(centre, station.position),
-      }))
-      .filter((station) => station.distanceKm <= rayon);
-
-    return { centre, lieu, resultats, erreur: null };
-  }, [mode, q, carburant, rayon, searchParams]);
-
-  const prixDisponibles = recherche.resultats
+  const prixDisponibles = resultats
     .map((station) => prixDe(station, carburant))
     .filter((item) => item?.disponible && Number.isFinite(item.prix))
     .map((item) => item.prix);
-
-  const tries = [...recherche.resultats].sort((a, b) => {
-    if (tri === 'distance') return a.distanceKm - b.distanceKm;
-    const prixA = prixDe(a, carburant);
-    const prixB = prixDe(b, carburant);
-    if (!prixA?.disponible) return prixB?.disponible ? 1 : a.distanceKm - b.distanceKm;
-    if (!prixB?.disponible) return -1;
-    return prixA.prix - prixB.prix;
-  });
+  const tries = resultats;
 
   function exporterCSV() {
     const lignes = [
@@ -124,7 +91,7 @@ function Resultats() {
           station.adresse,
           station.codePostal,
           station.ville,
-          station.distanceKm.toFixed(1).replace('.', ','),
+          station.distanceKm == null ? '' : station.distanceKm.toFixed(1).replace('.', ','),
           libelleCarburant(carburant),
           item?.prix == null ? '' : item.prix.toFixed(3).replace('.', ','),
           item?.disponible ? 'Oui' : 'Rupture',
@@ -140,10 +107,12 @@ function Resultats() {
     URL.revokeObjectURL(url);
   }
 
-  const moinsCher = tries.find((station) => {
-    const item = prixDe(station, carburant);
-    return item?.disponible && item.prix === Math.min(...prixDisponibles);
-  })?.id;
+  const moinsCher = prixDisponibles.length > 0
+    ? tries.find((station) => {
+      const item = prixDe(station, carburant);
+      return item?.disponible && item.prix === Math.min(...prixDisponibles);
+    })?.id
+    : null;
 
   function changerTri(nouveauTri) {
     const prochainsParametres = new URLSearchParams(searchParams);
@@ -157,14 +126,24 @@ function Resultats() {
   }));
 
   let contenuListe;
-  if (recherche.erreur === 'position') {
+  if (chargement) {
+    contenuListe = <MessageEtat type="chargement" message="Chargement des stations…" />;
+  } else if (mode === 'geo' && !positionValide) {
     contenuListe = <MessageEtat type="erreur" message="Position indisponible. Relancez la recherche avec la localisation activée." />;
-  } else if (recherche.erreur === 'ville') {
-    contenuListe = <MessageEtat type="vide" message="Aucune station pour cette ville, vérifiez la saisie. Les données de démonstration couvrent Rennes, Nantes et Cesson-Sévigné." />;
-  } else if (recherche.erreur === 'saisie') {
+  } else if (erreur) {
+    contenuListe = (
+      <MessageEtat
+        type="erreur"
+        message={erreur.message || MESSAGES_ERREUR.inconnu}
+        onReessayer={relancer}
+      />
+    );
+  } else if (mode === 'ville' && !q.trim()) {
     contenuListe = <MessageEtat type="vide" message="Saisissez une ville ou un code postal pour afficher les stations." />;
   } else if (tries.length === 0) {
-    contenuListe = <MessageEtat type="vide" message={`Aucune station trouvée à moins de ${rayon} km de ${recherche.lieu}. Essayez un rayon plus large.`} />;
+    contenuListe = <MessageEtat type="vide" message={mode === 'geo'
+      ? `Aucune station trouvée à moins de ${rayon} km de ${lieu}. Essayez un rayon plus large.`
+      : `Aucune station pour « ${q} », vérifiez la saisie. Essayez Rennes, Nantes ou un code postal comme 35000.`} />;
   } else {
     contenuListe = (
       <div className="resultats__liste">
@@ -205,10 +184,12 @@ function Resultats() {
       <div className="resultats__entete">
         <div>
           <h1 id="resultats-titre">
-            {recherche.erreur ? 'Résultats de recherche' : `${tries.length} station${tries.length > 1 ? 's' : ''} trouvée${tries.length > 1 ? 's' : ''}`}
+            {chargement ? 'Recherche en cours…' : erreur || (mode === 'geo' && !positionValide)
+              ? 'Résultats de recherche'
+              : `${tries.length} station${tries.length > 1 ? 's' : ''} trouvée${tries.length > 1 ? 's' : ''}`}
           </h1>
-          {!recherche.erreur && (
-            <p>{libelleCarburant(carburant)} à moins de {rayon} km de {recherche.lieu}</p>
+          {!chargement && !erreur && rechercheValide && (
+            <p>{libelleCarburant(carburant)} {mode === 'geo' ? `à moins de ${rayon} km de ${lieu}` : `à ${lieu}`}</p>
           )}
         </div>
 
@@ -221,7 +202,7 @@ function Resultats() {
               Distance la plus proche
             </button>
           </div>
-          <button type="button" className="resultats__export" onClick={exporterCSV} disabled={tries.length === 0}>
+          <button type="button" className="resultats__export" onClick={exporterCSV} disabled={chargement || Boolean(erreur) || tries.length === 0}>
             <Download size={17} aria-hidden="true" /> Exporter en CSV
           </button>
         </div>
@@ -244,7 +225,7 @@ function Resultats() {
           <CarteStations
             stations={pointsCarte}
             carburant={carburant}
-            centre={recherche.centre ?? undefined}
+            centre={centre}
           />
         </div>
       </div>
