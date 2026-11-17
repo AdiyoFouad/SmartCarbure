@@ -1,12 +1,12 @@
 /* Styles du composant BadgeAutomate. */
 .badge-automate {
   display: inline-block;
-  padding: 0.125rem var(--espace-2);
-  border: 1px solid var(--couleur-principale);
+  padding: 0.125rem 0.65rem;
+  border: 0;
   border-radius: 999px;
   background: var(--couleur-principale-claire);
   color: var(--couleur-principale-foncee);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
 }

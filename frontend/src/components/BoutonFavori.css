@@ -1,1 +1,32 @@
 /* Styles du composant BoutonFavori. */
+.bouton-favori {
+	display: inline-grid;
+	flex: 0 0 2.5rem;
+	width: 2.5rem;
+	height: 2.5rem;
+	place-items: center;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--couleur-texte-secondaire);
+	cursor: pointer;
+}
+
+.bouton-favori:hover {
+	background: var(--couleur-fond);
+	color: var(--couleur-accent-texte);
+}
+
+.bouton-favori--actif {
+	color: var(--couleur-accent-texte);
+}
+
+.bouton-favori--actif svg {
+	fill: currentColor;
+}
+
+.bouton-favori:focus-visible {
+	outline: 3px solid var(--couleur-focus);
+	outline-offset: 2px;
+}
