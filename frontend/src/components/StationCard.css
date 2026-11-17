@@ -1,1 +1,205 @@
 /* Styles du composant StationCard. */
+.station-card {
+	min-width: 0;
+	padding: 1.1rem 1.2rem;
+	border: 1px solid #dce5df;
+	border-radius: 1.25rem;
+	background: var(--couleur-surface);
+	box-shadow: 0 3px 12px rgb(31 41 51 / 7%);
+	transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.station-card:hover {
+	border-color: var(--couleur-principale);
+	box-shadow: 0 4px 16px rgb(31 41 51 / 10%);
+}
+
+.station-card--actif {
+	border-color: #83c89d;
+	box-shadow: 0 0 0 1px #83c89d, 0 4px 16px rgb(31 41 51 / 8%);
+}
+
+.station-card--moins-cher {
+	border-color: var(--couleur-principale);
+}
+
+.station-card--rupture {
+	background: #fffdfa;
+}
+
+.station-card__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(7.5rem, auto);
+	align-items: stretch;
+	gap: 1rem;
+}
+
+.station-card__badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35rem;
+	min-width: 0;
+}
+
+.station-card__badge {
+	display: inline-flex;
+	align-items: center;
+	min-height: 1.2rem;
+	padding: 0 0.5rem;
+	border-radius: 999px;
+	background: var(--couleur-principale-claire);
+	color: var(--couleur-principale-foncee);
+	font-size: 0.7rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.station-card__badges .badge-automate,
+.station-card__badges .badge-emplacement,
+.station-card__badges .badge-rupture {
+	padding: 0.1rem 0.5rem;
+	font-size: 0.7rem;
+}
+
+.station-card__badge--moins-cher {
+	background: var(--couleur-principale-claire);
+	color: var(--couleur-principale-foncee);
+}
+
+.station-card__lien {
+	display: block;
+	min-width: 0;
+	color: inherit;
+	text-decoration: none;
+}
+
+.station-card__nom {
+	overflow: hidden;
+	margin: 0.55rem 0 0;
+	font-size: 1.1rem;
+	font-weight: 650;
+	line-height: 1.35;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.station-card__adresse {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	margin: 0.25rem 0 0;
+	color: var(--couleur-texte-secondaire);
+	font-size: 0.95rem;
+	overflow-wrap: anywhere;
+}
+
+.station-card__adresse svg,
+.station-card__mise-a-jour svg {
+	flex: 0 0 auto;
+	margin-top: 0.15em;
+}
+
+.station-card__details {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1rem;
+	min-height: 1.4rem;
+	margin-top: 0.45rem;
+	color: var(--couleur-texte-secondaire);
+	font-size: 0.8rem;
+}
+
+.station-card__distance {
+	color: var(--couleur-texte);
+	font-weight: 650;
+}
+
+.station-card__mise-a-jour {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.station-card__colonne-prix {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	align-items: flex-end;
+	justify-content: space-between;
+}
+
+.station-card__prix {
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: flex-end;
+	gap: 0.1rem;
+	margin-top: auto;
+	padding-top: 0.25rem;
+}
+
+.station-card__carburant,
+.station-card__prix-absent {
+	color: var(--couleur-texte-secondaire);
+	font-size: 0.82rem;
+	white-space: nowrap;
+}
+
+.station-card__lien:hover .station-card__nom {
+	color: var(--couleur-principale-foncee);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.station-card {
+		transition: none;
+	}
+}
+
+@media (max-width: 480px) {
+	.station-card {
+		padding: 0.9rem;
+		border-radius: 1rem;
+	}
+
+	.station-card__layout {
+		grid-template-columns: minmax(0, 1fr) 6.5rem;
+		gap: 0.5rem;
+	}
+
+	.station-card__nom {
+		font-size: 1rem;
+	}
+
+	.station-card__adresse {
+		font-size: 0.88rem;
+	}
+
+	.station-card__details {
+		gap: 0.6rem;
+	}
+
+	.station-card__carburant,
+	.station-card__prix-absent {
+		font-size: 0.72rem;
+	}
+
+	.station-card__prix-absent {
+		max-width: 100%;
+		white-space: normal;
+		overflow-wrap: anywhere;
+		text-align: right;
+	}
+
+	.station-card .badge-prix[aria-label='Prix indisponible'] {
+		max-width: 100%;
+		font-size: 0.95rem;
+		white-space: normal;
+		overflow-wrap: anywhere;
+		text-align: right;
+	}
+
+	.station-card__badges {
+		gap: 0.3rem;
+	}
+}
