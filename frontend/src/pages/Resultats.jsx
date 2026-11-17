@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Download, List, Map as MapIcon } from 'lucide-react';
+import { List, Map as MapIcon } from 'lucide-react';
 import { CARBURANT_PAR_DEFAUT, CODES_CARBURANTS, libelleCarburant } from '../constants/carburants';
 import FormulaireRecherche from '../components/FormulaireRecherche';
 import StationCard from '../components/StationCard';
@@ -80,32 +80,6 @@ function Resultats() {
     .filter((item) => item?.disponible && Number.isFinite(item.prix))
     .map((item) => item.prix);
   const tries = resultats;
-
-  function exporterCSV() {
-    const lignes = [
-      ['Station', 'Adresse', 'Code postal', 'Ville', 'Distance (km)', 'Carburant', 'Prix (€/L)', 'Disponible'],
-      ...tries.map((station) => {
-        const item = prixDe(station, carburant);
-        return [
-          station.nom || 'Station-service',
-          station.adresse,
-          station.codePostal,
-          station.ville,
-          station.distanceKm == null ? '' : station.distanceKm.toFixed(1).replace('.', ','),
-          libelleCarburant(carburant),
-          item?.prix == null ? '' : item.prix.toFixed(3).replace('.', ','),
-          item?.disponible ? 'Oui' : 'Rupture',
-        ];
-      }),
-    ];
-    const contenu = '\uFEFF' + lignes.map((ligne) => ligne.map((cellule) => `"${String(cellule).replace(/"/g, '""')}"`).join(';')).join('\n');
-    const url = URL.createObjectURL(new Blob([contenu], { type: 'text/csv;charset=utf-8' }));
-    const lien = document.createElement('a');
-    lien.href = url;
-    lien.download = `smartcarbure-${carburant.toLowerCase()}.csv`;
-    lien.click();
-    URL.revokeObjectURL(url);
-  }
 
   const moinsCher = prixDisponibles.length > 0
     ? tries.find((station) => {
@@ -202,9 +176,6 @@ function Resultats() {
               Distance la plus proche
             </button>
           </div>
-          <button type="button" className="resultats__export" onClick={exporterCSV} disabled={chargement || Boolean(erreur) || tries.length === 0}>
-            <Download size={17} aria-hidden="true" /> Exporter en CSV
-          </button>
         </div>
       </div>
 

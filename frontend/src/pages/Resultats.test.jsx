@@ -116,7 +116,6 @@ describe('Page Resultats', () => {
     afficherRecherche('/resultats?q=Lyon&carburant=GAZOLE&rayon=10');
 
     expect(await screen.findByText(/Aucune station pour « Lyon »/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /exporter en csv/i })).toBeDisabled();
   });
 
   test('affiche une erreur et permet de relancer la recherche', async () => {
@@ -127,19 +126,5 @@ describe('Page Resultats', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
 
     expect(await screen.findByRole('heading', { name: '3 stations trouvées' })).toBeInTheDocument();
-  });
-
-  test('exporte une recherche par ville dont la distance est absente', async () => {
-    const createObjectURL = vi.fn(() => 'blob:resultats');
-    const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
-    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    afficherRecherche('/resultats?q=Rennes&carburant=GAZOLE&rayon=10');
-
-    await screen.findByRole('heading', { name: '3 stations trouvées' });
-    fireEvent.click(screen.getByRole('button', { name: /exporter en csv/i }));
-
-    expect(createObjectURL).toHaveBeenCalledOnce();
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:resultats');
   });
 });
