@@ -26,7 +26,7 @@ Ce document décrit les routes REST que le frontend appelle. Le backend doit les
 - **Codes carburant :** `GAZOLE`, `SP95`, `SP98`, `E10`, `E85`, `GPLC`. Un autre code renvoie une erreur 400.
 - **Tri :** `PRIX` ou `DISTANCE`.
 - **Rayon de recherche :** entier de 1 à 50 (km).
-- **Routes protégées :** elles attendent l'en-tête `Authorization: Bearer <jeton>`, où le jeton est celui renvoyé par `POST /api/auth/connexion`. Sans jeton, ou avec un jeton invalide ou expiré, elles renvoient **401** (jamais 403).
+- **Routes protégées :** elles attendent l'en-tête `Authorization: Bearer <jeton>`, où le jeton est celui renvoyé par `POST /api/auth/connexion`. Sans jeton, ou avec un jeton invalide ou expiré, elles renvoient **401** (jamais 403), avec le corps `{ "statut": 401, "message": "Authentification requise : jeton absent, invalide ou expiré." }`. Le jeton est valable 24 heures (réglage `jwt.expiration-heures`). Sur une route publique, un jeton absent, invalide ou expiré est simplement ignoré.
 - **Champs absents :** un champ sans valeur est renvoyé avec `null`, jamais omis, sauf mention contraire dans la description du modèle.
 
 ## Codes d'erreur
@@ -74,7 +74,7 @@ Une ville ou un code postal inconnu **n'est pas une erreur** : la recherche renv
 | GET | `/api/stations/{id}` | non | F7, F8 | BALDE Ibrahim |
 | GET | `/api/preferences` | oui | F13 | BALDE Ibrahim |
 | PUT | `/api/preferences` | oui | F13 | BALDE Ibrahim |
-| GET | `/api/trajet?depart=&arrivee=&carburant=` | non | F6, F9 | NGUETSA NDZANA Rodrigue Duran |
+| GET | `/api/trajet?depart=&arrivee=&carburant=&rayon=` | non | F6, F9 | NGUETSA NDZANA Rodrigue Duran |
 | POST | `/api/auth/inscription` | non | F11 | DIARRA Sartière Fatim |
 | POST | `/api/auth/connexion` | non | F12 | DIARRA Sartière Fatim |
 | GET | `/api/favoris` | oui | F14 | BAH Ibrahima Kalil |
@@ -177,12 +177,12 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 
 | Paramètre | Obligatoire | Valeurs |
 |---|---|---|
-| `lat`, `lon` | oui | coordonnées GPS (nombres décimaux) |
+| `lat`, `lon` | oui | coordonnées GPS (nombres décimaux) : latitude de -90 à 90, longitude de -180 à 180 |
 | `rayon` | oui | entier de 1 à 50 (km) |
 | `carburant` | oui | code du carburant |
 | `tri` | non | `PRIX` (par défaut) ou `DISTANCE` |
 
-**Réponse 200 :** un tableau de stations, triées selon le paramètre `tri`, avec `distanceKm` renseigné. Seules les stations qui vendent le carburant demandé sont renvoyées. Les stations en rupture sur ce carburant sont incluses, avec `disponible: false`. Quand le tri est `PRIX`, elles sont placées en fin de liste.
+**Réponse 200 :** un tableau de stations, triées selon le paramètre `tri`, avec `distanceKm` renseigné. Seules les stations qui vendent le carburant demandé sont renvoyées. Les stations en rupture sur ce carburant sont incluses, avec `disponible: false`. Quand le tri est `PRIX`, elles sont placées en fin de liste. La réponse contient au plus 500 stations (réglage `smartcarbure.api-carburants.max-resultats`) : au-delà, seules les plus proches sont gardées.
 
 ```json
 [
@@ -219,7 +219,7 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 **Aucune station dans le rayon :** réponse 200 avec `[]`. Le frontend affiche « Aucune station trouvée, élargissez le rayon ».
 
 **Erreurs :**
-- 400 si `lat` ou `lon` est mal formé, si `rayon` est hors limites, ou si `carburant` ou `tri` est inconnu ;
+- 400 si ni `ville` ni `lat`/`lon` ne sont fournis, si `lat` ou `lon` est mal formé ou hors limites, si `rayon` est absent ou hors limites, si `carburant` est absent, ou si `carburant` ou `tri` est inconnu ;
 - 503 si l'API Prix des carburants est indisponible.
 
 ### Rechercher des stations par ville ou code postal (F2, F4, F5)
@@ -230,11 +230,11 @@ Utilisée dans toutes les réponses qui contiennent des stations (recherche, fic
 
 | Paramètre | Obligatoire | Valeurs |
 |---|---|---|
-| `ville` | oui | nom de ville (`Rennes`) ou code postal (`35000`) ; la casse et les accents sont ignorés |
+| `ville` | oui | nom exact de la commune (`Rennes` ; `Renne` ne trouve rien) ou code postal de 5 chiffres (`35000`) ; la casse et les accents sont ignorés |
 | `carburant` | oui | code du carburant |
 | `tri` | non | `PRIX` (par défaut) ou `DISTANCE` |
 
-Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
+Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés : seules les stations de la commune (ou du code postal) sont renvoyées. Comme `distanceKm` vaut `null`, `tri=DISTANCE` est accepté sans erreur et les stations sont alors triées par prix.
 
 **Réponse 200 :** un tableau de stations au même format que la recherche par position, avec `distanceKm: null`.
 
@@ -321,6 +321,9 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
 | `depart` | oui | `latitude,longitude` du point de départ |
 | `arrivee` | oui | `latitude,longitude` du point d'arrivée |
 | `carburant` | oui | code du carburant |
+| `rayon` | non | distance maximale d'une station à la route, en km, de 1 à 10 (5 par défaut) |
+
+Le trajet est limité à 500 km.
 
 **Réponse 200 :**
 
@@ -361,12 +364,12 @@ Si `ville` est fourni, `lat`, `lon` et `rayon` sont ignorés.
 
 - `points` contient les points de l'itinéraire, dans l'ordre, du départ à l'arrivée. Le frontend les relie pour tracer le trajet sur la carte.
 - `distanceKm` (dans `trajet`) est la longueur de l'itinéraire.
-- `stations` contient les stations le long du trajet, sans doublon, filtrées par carburant et triées par prix. Pour chaque station, `distanceKm` est la distance au trajet.
+- `stations` contient les stations situées à moins de `rayon` km de la route, sans doublon, filtrées par carburant et triées par prix. Les stations en rupture sur ce carburant sont incluses, avec `disponible: false`, et placées en fin de liste. Pour chaque station, `distanceKm` est la distance au trajet.
 - Aucune station le long du trajet : `stations` vaut `[]` (réponse 200).
 
 **Erreurs :**
-- 400 si un paramètre manque, si les coordonnées sont mal formées, ou si le carburant est inconnu ;
-- 503 si le service d'itinéraire ou l'API carburants est indisponible.
+- 400 si un paramètre manque, si les coordonnées sont mal formées, si le carburant est inconnu, si `rayon` est hors limites, si le trajet dépasse 500 km, ou si aucun itinéraire routier n'existe entre les deux points ;
+- 503 si le service d'itinéraire ou l'API carburants est indisponible (y compris clé du service d'itinéraire absente ou quota journalier atteint).
 
 ### Comparer deux zones (F16)
 
@@ -425,7 +428,7 @@ Exemple par département : `GET /api/comparer?type=DEPARTEMENT&zone1=35&zone2=44
 | `carburant` | oui | code du carburant |
 | `litres` | oui | volume du plein, nombre strictement positif |
 
-Le prix moyen local est calculé par le backend, sur les stations de la même ville qui vendent ce carburant (stations en rupture exclues).
+Le prix moyen local est calculé par le backend, sur les stations de la même ville qui vendent ce carburant (stations en rupture exclues). La station choisie fait toujours partie du calcul. Le prix moyen est arrondi à trois décimales.
 
 **Réponse 200 :**
 
@@ -433,10 +436,12 @@ Le prix moyen local est calculé par le backend, sur les stations de la même vi
 {
   "prixStation": 1.749,
   "prixMoyenLocal": 1.771,
-  "litres": 50,
+  "litres": 50.0,
   "montant": 1.10
 }
 ```
+
+`litres` est un nombre décimal : le volume saisi est renvoyé tel quel (`50.0` pour 50).
 
 `montant` = (`prixMoyenLocal` − `prixStation`) × `litres`, arrondi au centime : positif pour une économie, négatif pour un surcoût.
 
@@ -457,9 +462,9 @@ Le prix moyen local est calculé par le backend, sur les stations de la même vi
 
 | Champ | Règle |
 |---|---|
-| `nom` | obligatoire, non vide |
-| `email` | obligatoire, format valide (`test@` est refusé) |
-| `motDePasse` | obligatoire, 8 caractères minimum |
+| `nom` | obligatoire, non vide, 100 caractères maximum |
+| `email` | obligatoire, format valide (`test@` est refusé) ; enregistré sans espaces et en minuscules |
+| `motDePasse` | obligatoire, de 8 à 72 caractères |
 
 **Réponse 201 :** l'utilisateur créé. L'utilisateur doit ensuite se connecter.
 
@@ -628,11 +633,12 @@ Nom;Adresse;Code postal;Ville;Carburant;Prix (€/L);Disponible;Distance (km);Mi
 Une ligne par station, pour le carburant recherché :
 
 ```
-Station Rennes Centre;12 boulevard de la Liberté;35000;Rennes;Gazole;1,749;Oui;1,4;2026-11-03T13:40:00Z
+;12 boulevard de la Liberté;35000;Rennes;Gazole;1,749;Oui;1,4;2026-11-03T13:40:00Z
 ```
 
 | Colonne | Contenu |
 |---|---|
+| Nom | toujours vide : l'API Prix des carburants ne fournit pas de nom de station (`nom` vaut `null`) |
 | Carburant | libellé affiché (`Gazole`, `SP95`, `SP98`, `SP95-E10`, `E85`, `GPLc`) |
 | Disponible | `Oui` ou `Non` (rupture) |
 | Distance (km) | vide pour une recherche par ville |
@@ -640,7 +646,7 @@ Station Rennes Centre;12 boulevard de la Liberté;35000;Rennes;Gazole;1,749;Oui;
 
 ## Décisions prises
 
-Ces choix ont été tranchés lors de la rédaction du contrat (tâche C1). Les autres formats proposés ont été écartés.
+Ces choix ont été tranchés lors de la rédaction du contrat (tâche C1), puis pendant le développement (anciens « Points à valider par le groupe »). Les autres formats proposés ont été écartés.
 
 | Sujet | Décision | Format écarté | Raison |
 |---|---|---|---|
@@ -649,44 +655,44 @@ Ces choix ont été tranchés lors de la rédaction du contrat (tâche C1). Les 
 | Contenu de `GET /api/favoris` | Stations complètes, avec le champ `dateAjout` | `{ idStation, dateAjout }` seulement | La page « Mes favoris » s'affiche en un seul appel, sans un `GET /api/stations/{id}` par favori. `POST /api/favoris` renvoie bien `{ idStation, dateAjout }`. |
 | Nom du champ du carburant préféré | `carburantPrefere`, partout (Utilisateur et `/api/preferences`) | `codeCarburantPrefere` | Un seul nom pour le même champ dans tous les objets JSON ; il contient toujours un code carburant (`GAZOLE`…). |
 | Utilisateur non connecté sur une route protégée | 401, jamais 403 | 403 (comportement par défaut de Spring Security) | Le frontend redirige vers la page de connexion sur un 401 ; `SecurityConfig` doit configurer ce statut. |
+| Rayon pour une recherche par ville | `rayon` est ignoré : seules les stations de la commune (ou du code postal) sont renvoyées | Rayon autour du centre de la ville | L'API Prix des carburants filtre directement par commune ; aucun géocodage de la ville n'est nécessaire. |
+| Tri `DISTANCE` sans position | Accepté sans erreur ; les stations sont triées par prix | Erreur 400 | Pour une recherche par ville, `distanceKm` vaut `null` : il n'y a pas de distance à trier. |
+| Distance maximale au trajet (F6) | 5 km par défaut, paramètre `rayon` facultatif de 1 à 10 km ; trajet limité à 500 km | Distance fixe, sans limite de longueur | Étude validée (`docs/etude-trajet.md`) : le nombre d'appels à l'API reste raisonnable. |
+| Prix d'un carburant en rupture | `prix: null` (et `dateMaj: null`) quand l'API ne fournit pas de prix ; le frontend l'accepte | Carburant absent de la liste | La fiche (F8) doit afficher tous les carburants, y compris ceux en rupture. |
+| Zone de référence de l'économie (F15) | Les stations de la même ville que la station choisie | Rayon autour de la station, ou département | Règle codée dans `EconomieService` (PR #17). Pour une commune avec une seule station, l'économie vaut 0. |
+| Nombre de résultats | 500 stations au plus (réglage `smartcarbure.api-carburants.max-resultats`) ; pour une recherche par position, les plus proches sont gardées | Aucune limite | Limite le nombre d'appels à l'API (pages de 100 stations) et le volume affiché. |
+| Durée de validité du jeton | 24 heures (réglage `jwt.expiration-heures`) ; à l'expiration, les routes protégées renvoient 401 et le frontend redirige vers la page de connexion | — | Une journée d'utilisation sans reconnexion. |
 
 ## Points à valider par le groupe
 
-Ces points ne sont pas tranchés. Tant qu'ils ne le sont pas, la version écrite plus haut fait foi.
-
-1. **Rayon pour une recherche par ville.** Le contrat ignore `rayon` quand `ville` est fourni (stations de la commune uniquement). F2 parle de stations « autour d'une ville » : faut-il plutôt chercher dans un rayon autour du centre de la ville ?
-2. **Tri `DISTANCE` sans position.** Pour une recherche par ville, `distanceKm` vaut `null`. Proposition : le backend trie alors par prix, sans erreur.
-3. **Distance maximale au trajet (F6).** Le contrat ne fixe pas à partir de quelle distance une station est « le long du trajet ». Proposition : 5 km, avec un paramètre `rayon` facultatif.
-4. **Prix d'un carburant en rupture.** L'API ne fournit pas toujours de prix pour un carburant en rupture définitive. Faut-il renvoyer `prix: null` dans ce cas ? Le frontend doit alors l'accepter.
-5. **Zone de référence de l'économie (F15).** Le contrat prend « les stations de la même ville ». Pour une petite commune avec une seule station, l'économie vaut toujours 0. Faut-il plutôt un rayon autour de la station, ou le département ?
-6. **Nombre de résultats.** Aucune limite n'est fixée pour la recherche par position avec un grand rayon. Faut-il un maximum (par exemple 100 stations) ?
-7. **Durée de validité du jeton.** À fixer (par exemple 24 h). À l'expiration, les routes protégées renvoient 401 et le frontend redirige vers la page de connexion.
+Aucun point en attente : les points précédents ont été tranchés et figurent dans « Décisions prises ». Les nouveaux points à discuter seront ajoutés ici.
 
 ## DTO cités par le contrat
 
-Ces classes appartiennent au package `fr.miage.smartcarbure.dto`. Le contrat les cite ; celles qui manquent restent à créer par l'équipe backend. La colonne « Existe déjà » concerne les classes vides de la branche `feature/structure-backend`.
+Ces classes appartiennent au package `fr.miage.smartcarbure.dto` (les énumérations `TypeTri` et `TypeZone` au package `fr.miage.smartcarbure.enums`). Le contrat les cite ; celles qui manquent restent à créer par l'équipe backend. La colonne « État sur main » indique si la classe est écrite, encore vide, ou absente.
 
-| DTO | Rôle dans le contrat | Existe déjà |
+| DTO | Rôle dans le contrat | État sur main |
 |---|---|---|
-| `StationDTO` | modèle Station (recherche, fiche, trajet, favoris) | oui |
-| `CritereRecherche` | paramètres de `GET /api/stations` | oui |
-| `TypeTri` | `PRIX` ou `DISTANCE` | oui |
-| `TrajetResponse` | réponse de `GET /api/trajet` | oui |
-| `InscriptionRequest` | corps de `POST /api/auth/inscription` | oui |
-| `ConnexionRequest` | corps de `POST /api/auth/connexion` | oui |
-| `AuthResponse` | réponse de `POST /api/auth/connexion` | oui |
-| `FavoriDTO` | corps et réponse de `POST /api/favoris` (`idStation`, `dateAjout`) | oui |
-| `PreferencesDTO` | corps et réponse de `/api/preferences` | oui |
-| `EconomieRequest` | paramètres de `GET /api/economie` | oui |
-| `EconomieResponse` | réponse de `GET /api/economie` | oui |
-| `PositionDTO` | `position`, `depart`, `arrivee` et `points` | non |
-| `ZoneDTO` | `departement` et `region` (`code`, `nom`) | non |
-| `HoraireDTO` | élément de `horaires` | non |
-| `PrixCarburantDTO` | élément de `carburants` | non |
-| `TrajetDTO` | objet `trajet` de la réponse de `GET /api/trajet` | non |
-| `UtilisateurDTO` | utilisateur renvoyé à l'inscription et à la connexion | non |
-| `FavoriStationDTO` | élément de `GET /api/favoris` (station avec `dateAjout`) | non |
-| `ComparaisonResponse` | réponse de `GET /api/comparer` | non |
-| `ZoneComparaisonDTO` | `zone1` et `zone2` de la comparaison | non |
-| `TypeZone` | `VILLE` ou `DEPARTEMENT` | non |
-| `ErreurDTO` | corps de toutes les erreurs (`statut`, `message`) | non |
+| `StationDTO` | modèle Station (recherche, fiche, trajet, favoris) | écrite |
+| `PositionDTO` | `position`, `depart`, `arrivee` et `points` | écrite |
+| `DepartementDTO` | `departement` (`code`, `nom`) | écrite |
+| `RegionDTO` | `region` (`code`, `nom`) | écrite |
+| `HoraireDTO` | élément de `horaires` (`jour`, `ferme`, `ouverture`, `fermeture` au format `HH:mm`) | écrite |
+| `PrixCarburantDTO` | élément de `carburants` | écrite |
+| `CritereRechercheDTO` | paramètres de `GET /api/stations` | écrite |
+| `TypeTri` | `PRIX` ou `DISTANCE` | écrite |
+| `InscriptionRequest` | corps de `POST /api/auth/inscription` | écrite |
+| `ConnexionRequest` | corps de `POST /api/auth/connexion` | écrite |
+| `AuthResponse` | réponse de `POST /api/auth/connexion` | écrite |
+| `UtilisateurDTO` | utilisateur renvoyé à l'inscription et à la connexion | écrite |
+| `EconomieResponse` | réponse de `GET /api/economie` | écrite |
+| `ErreurDTO` | corps de toutes les erreurs (`statut`, `message`) | écrite |
+| `EconomieRequest` | paramètres de `GET /api/economie` (le contrôleur lit les paramètres directement) | vide |
+| `TrajetResponse` | réponse de `GET /api/trajet` | vide |
+| `FavoriDTO` | corps et réponse de `POST /api/favoris` (`idStation`, `dateAjout`) | vide |
+| `PreferencesDTO` | corps et réponse de `/api/preferences` | vide |
+| `TrajetDTO` | objet `trajet` de la réponse de `GET /api/trajet` | absente |
+| `FavoriStationDTO` | élément de `GET /api/favoris` (station avec `dateAjout`) | absente |
+| `ComparaisonResponse` | réponse de `GET /api/comparer` | absente |
+| `ZoneComparaisonDTO` | `zone1` et `zone2` de la comparaison | absente |
+| `TypeZone` | `VILLE` ou `DEPARTEMENT` | absente |
