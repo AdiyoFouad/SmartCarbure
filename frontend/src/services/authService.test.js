@@ -1,5 +1,4 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { ApiError } from './api';
 
 async function chargerService(modeDemo) {
   vi.stubEnv('VITE_USE_MOCK', modeDemo ? 'true' : 'false');
@@ -73,7 +72,10 @@ describe('authService - Mode réel', () => {
     vi.stubGlobal('fetch', fetch);
 
     const { connecter } = await chargerService(false);
-    await expect(connecter({ email: 'faux@exemple.fr', motDePasse: 'errone' })).rejects.toThrow(ApiError);
+    await expect(connecter({ email: 'faux@exemple.fr', motDePasse: 'errone' })).rejects.toMatchObject({
+      name: 'ApiError',
+      statut: 401,
+    });
   });
 });
 
