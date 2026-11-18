@@ -1,4 +1,5 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { AuthProvider, CLE_STOCKAGE_AUTH } from './AuthContext';
 import { useAuth } from '../hooks/useAuth';
@@ -10,10 +11,14 @@ vi.mock('../services/authService', () => ({
   inscrire: vi.fn(),
 }));
 
-vi.mock('../services/api', () => ({
-  definirJeton: vi.fn(),
-  obtenirJeton: vi.fn(),
-}));
+vi.mock('../services/api', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    definirJeton: vi.fn(),
+    obtenirJeton: vi.fn(),
+  };
+});
 
 function ComposantTest() {
   const { estConnecte, utilisateur, jeton, connecter, deconnecter, mettreAJourUtilisateur, inscrire } = useAuth();
@@ -77,6 +82,7 @@ describe('AuthContext et AuthProvider', () => {
   });
 
   test('connecter met à jour la session et enregistre dans le localStorage', async () => {
+    const user = userEvent.setup();
     vi.mocked(authService.connecter).mockResolvedValueOnce({
       jeton: 'nouveau-jeton',
       utilisateur: { id: 1, nom: 'Camille', email: 'test@test.fr' },
@@ -88,13 +94,14 @@ describe('AuthContext et AuthProvider', () => {
       </AuthProvider>
     );
 
-    await act(async () => {
-      screen.getByRole('button', { name: /connecter/i }).click();
+    await user.click(screen.getByRole('button', { name: /connecter/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('connecte')).toHaveTextContent('oui');
     });
 
     expect(authService.connecter).toHaveBeenCalledWith({ email: 'test@test.fr', motDePasse: 'secret123' });
     expect(api.definirJeton).toHaveBeenCalledWith('nouveau-jeton');
-    expect(screen.getByTestId('connecte')).toHaveTextContent('oui');
     expect(screen.getByTestId('utilisateur')).toHaveTextContent('Camille');
 
     const stocke = JSON.parse(localStorage.getItem(CLE_STOCKAGE_AUTH));
@@ -103,6 +110,7 @@ describe('AuthContext et AuthProvider', () => {
   });
 
   test('deconnecter efface la session, le localStorage et le jeton api', async () => {
+    const user = userEvent.setup();
     localStorage.setItem(
       CLE_STOCKAGE_AUTH,
       JSON.stringify({ jeton: 'jwt', utilisateur: { id: 1, nom: 'Camille' } })
@@ -116,17 +124,19 @@ describe('AuthContext et AuthProvider', () => {
 
     expect(screen.getByTestId('connecte')).toHaveTextContent('oui');
 
-    await act(async () => {
-      screen.getByRole('button', { name: /déconnecter/i }).click();
+    await user.click(screen.getByRole('button', { name: /déconnecter/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('connecte')).toHaveTextContent('non');
     });
 
     expect(api.definirJeton).toHaveBeenCalledWith(null);
-    expect(screen.getByTestId('connecte')).toHaveTextContent('non');
     expect(screen.getByTestId('utilisateur')).toHaveTextContent('aucun');
     expect(localStorage.getItem(CLE_STOCKAGE_AUTH)).toBeNull();
   });
 
   test('mettreAJourUtilisateur modifie les données utilisateur en mémoire et dans le stockage', async () => {
+    const user = userEvent.setup();
     localStorage.setItem(
       CLE_STOCKAGE_AUTH,
       JSON.stringify({ jeton: 'jwt', utilisateur: { id: 1, nom: 'Camille', carburantPrefere: 'GAZOLE' } })
@@ -138,15 +148,16 @@ describe('AuthContext et AuthProvider', () => {
       </AuthProvider>
     );
 
-    await act(async () => {
-      screen.getByRole('button', { name: /changer carburant/i }).click();
-    });
+    await user.click(screen.getByRole('button', { name: /changer carburant/i }));
 
-    const stocke = JSON.parse(localStorage.getItem(CLE_STOCKAGE_AUTH));
-    expect(stocke.utilisateur.carburantPrefere).toBe('SP95');
+    await waitFor(() => {
+      const stocke = JSON.parse(localStorage.getItem(CLE_STOCKAGE_AUTH));
+      expect(stocke.utilisateur.carburantPrefere).toBe('SP95');
+    });
   });
 
   test('inscrire appelle authService.inscrire', async () => {
+    const user = userEvent.setup();
     vi.mocked(authService.inscrire).mockResolvedValueOnce({ id: 2, nom: 'Nouveau' });
 
     render(
@@ -155,9 +166,7 @@ describe('AuthContext et AuthProvider', () => {
       </AuthProvider>
     );
 
-    await act(async () => {
-      screen.getByRole('button', { name: /inscrire/i }).click();
-    });
+    await user.click(screen.getByRole('button', { name: /inscrire/i }));
 
     expect(authService.inscrire).toHaveBeenCalledWith({
       nom: 'Nouveau',
@@ -167,6 +176,8 @@ describe('AuthContext et AuthProvider', () => {
   });
 
   test('lève une erreur si useAuth est utilisé en dehors de AuthProvider', () => {
+    const espionConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => render(<ComposantTest />)).toThrow('useAuth doit être utilisé dans un AuthProvider.');
+    espionConsole.mockRestore();
   });
 });
