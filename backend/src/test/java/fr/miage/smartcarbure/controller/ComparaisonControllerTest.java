@@ -1,6 +1,7 @@
 package fr.miage.smartcarbure.controller;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +37,12 @@ class ComparaisonControllerTest {
     void exposeLaComparaisonSurLaRouteDemandee() throws Exception {
         when(service.comparer("VILLE", "Rennes", "Nantes", Carburant.GAZOLE))
                 .thenReturn(new ComparaisonResponse("VILLE", Carburant.GAZOLE,
-                        new ZoneComparaisonDTO("Rennes", new BigDecimal("1.742"), 4),
-                        new ZoneComparaisonDTO("Nantes", new BigDecimal("1.746"), 3),
+                    new ZoneComparaisonDTO("Rennes", new BigDecimal("1.742"), 4,
+                        Map.of(Carburant.GAZOLE, new BigDecimal("1.742")),
+                        Map.of(Carburant.GAZOLE, 4), 4),
+                    new ZoneComparaisonDTO("Nantes", new BigDecimal("1.746"), 3,
+                        Map.of(Carburant.GAZOLE, new BigDecimal("1.746")),
+                        Map.of(Carburant.GAZOLE, 3), 3),
                         new BigDecimal("-0.004")));
 
         mockMvc.perform(get("/api/comparer").param("type", "VILLE").param("zone1", "Rennes")
@@ -48,6 +53,9 @@ class ComparaisonControllerTest {
                 .andExpect(jsonPath("$.zone1.nom").value("Rennes"))
                 .andExpect(jsonPath("$.zone1.prixMoyen").value(1.742))
                 .andExpect(jsonPath("$.zone1.nombreStations").value(4))
+                .andExpect(jsonPath("$.zone1.moyennes.GAZOLE").value(1.742))
+                .andExpect(jsonPath("$.zone1.nombreStationsParCarburant.GAZOLE").value(4))
+                .andExpect(jsonPath("$.zone1.nombreStationsTotal").value(4))
                 .andExpect(jsonPath("$.ecart").value(-0.004));
     }
 

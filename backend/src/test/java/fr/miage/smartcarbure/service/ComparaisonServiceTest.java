@@ -80,6 +80,24 @@ class ComparaisonServiceTest {
     }
 
     @Test
+    void calculeLesMoyennesEtEffectifsDeTousLesCarburants() {
+        when(client.rechercherParVille("Rennes")).thenReturn(List.of(stationAvecCarburants("1", "Rennes", "35",
+                "Ille-et-Vilaine", List.of(
+                        prix(Carburant.GAZOLE, 1.700, true),
+                        prix(Carburant.SP95, 1.800, true)))));
+        when(client.rechercherParVille("Nantes")).thenReturn(List.of(stationAvecCarburants("2", "Nantes", "44",
+                "Loire-Atlantique", List.of(
+                        prix(Carburant.GAZOLE, 1.750, true),
+                        prix(Carburant.SP95, 1.780, true)))));
+
+        ComparaisonResponse reponse = service.comparer("VILLE", "Rennes", "Nantes", Carburant.GAZOLE);
+
+        assertEquals(new BigDecimal("1.800"), reponse.zone1().moyennes().get(Carburant.SP95));
+        assertEquals(1, reponse.zone1().nombreStationsParCarburant().get(Carburant.SP95));
+        assertEquals(1, reponse.zone1().nombreStationsTotal());
+    }
+
+    @Test
     void typeInconnuOuZoneVideEstRefuseAvantToutAppel() {
         assertEquals("Le type doit être VILLE ou DEPARTEMENT.", assertThrows(IllegalArgumentException.class,
                 () -> service.comparer("REGION", "35", "44", Carburant.GAZOLE)).getMessage());
@@ -100,5 +118,16 @@ class ComparaisonServiceTest {
         PrixCarburant prixCarburant = PrixCarburant.builder().carburant(Carburant.GAZOLE)
                 .prix(prix).disponible(disponible).build();
         return Station.builder().id(id).ville(ville).carburants(List.of(prixCarburant)).build();
+    }
+
+    private static Station stationAvecCarburants(String id, String villeNom, String codeDepartement,
+                                                  String departementNom, List<PrixCarburant> carburants) {
+        Departement departement = new Departement(codeDepartement, departementNom, null);
+        Ville ville = new Ville(villeNom, null, departement);
+        return Station.builder().id(id).ville(ville).carburants(carburants).build();
+    }
+
+    private static PrixCarburant prix(Carburant carburant, double prix, boolean disponible) {
+        return PrixCarburant.builder().carburant(carburant).prix(prix).disponible(disponible).build();
     }
 }
