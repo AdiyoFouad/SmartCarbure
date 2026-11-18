@@ -693,6 +693,6 @@ Ces classes appartiennent au package `fr.miage.smartcarbure.dto` (les énumérat
 | `PreferencesDTO` | corps et réponse de `/api/preferences` | vide |
 | `TrajetDTO` | objet `trajet` de la réponse de `GET /api/trajet` | absente |
 | `FavoriStationDTO` | élément de `GET /api/favoris` (station avec `dateAjout`) | absente |
-| `ComparaisonResponse` | réponse de `GET /api/comparer` | absente |
-| `ZoneComparaisonDTO` | `zone1` et `zone2` de la comparaison | absente |
+| `ComparaisonResponse` | réponse de `GET /api/comparer` | écrite |
+| `ZoneComparaisonDTO` | `zone1` et `zone2` de la comparaison | écrite |
 | `TypeZone` | `VILLE` ou `DEPARTEMENT` | absente |
