@@ -1,1 +1,147 @@
-/* Styles du composant Trajet. */
+/* Styles de la page Trajet (F6) : grande carte, avec le panneau de recherche par-dessus en haut à gauche. */
+
+.page-trajet {
+  position: relative;
+  height: calc(100vh - 12rem);
+  min-height: 520px;
+}
+
+.page-trajet__carte {
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 8%);
+}
+
+.page-trajet__panneau {
+  position: absolute;
+  top: var(--espace-4);
+  left: var(--espace-4);
+  z-index: 1; /* au-dessus de la carte */
+  width: min(380px, calc(100% - 2 * var(--espace-4)));
+  max-height: calc(100% - 2 * var(--espace-4));
+  overflow-y: auto;
+  padding: var(--espace-5);
+  border-radius: 16px;
+  background: var(--couleur-surface);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 15%);
+}
+
+.page-trajet__panneau h1 {
+  margin: 0 0 var(--espace-2);
+  font-size: 1.4rem;
+}
+
+.page-trajet__consigne {
+  margin: 0 0 var(--espace-4);
+  color: var(--couleur-texte-secondaire);
+  font-size: 0.9rem;
+}
+
+.page-trajet__champs {
+  display: flex;
+  gap: var(--espace-2);
+  margin-bottom: var(--espace-3);
+}
+
+.page-trajet__champs select {
+  flex: 1;
+  min-height: 2.75rem;
+  padding: 0 var(--espace-3);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: 999px;
+  background: var(--couleur-fond);
+  font: inherit;
+}
+
+.page-trajet__recommencer {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: 50%;
+  background: var(--couleur-surface);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.page-trajet__rechercher {
+  width: 100%;
+  min-height: 2.75rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--couleur-principale);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-trajet__rechercher:hover:not(:disabled) {
+  background: var(--couleur-principale-foncee);
+}
+
+.page-trajet__rechercher:disabled,
+.page-trajet__recommencer:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-trajet__panneau .message-etat {
+  margin-top: var(--espace-3);
+}
+
+.page-trajet__resultat {
+  margin-top: var(--espace-4);
+  padding-top: var(--espace-3);
+  border-top: 1px solid var(--couleur-bordure);
+}
+
+.page-trajet__resultat p {
+  margin: 0 0 var(--espace-2);
+}
+
+.page-trajet__liste {
+  margin: 0;
+  padding-left: var(--espace-5);
+}
+
+.page-trajet__liste li {
+  margin-bottom: var(--espace-2);
+}
+
+.page-trajet__liste a {
+  display: block;
+  color: var(--couleur-texte);
+  font-weight: 600;
+}
+
+.page-trajet__prix {
+  margin-right: var(--espace-2);
+  color: var(--couleur-principale);
+  font-weight: 700;
+}
+
+.page-trajet__distance {
+  color: var(--couleur-texte-secondaire);
+  font-size: 0.85rem;
+}
+
+/* Sur téléphone : la carte en haut, le panneau en dessous. */
+@media (max-width: 768px) {
+  .page-trajet {
+    height: auto;
+    min-height: 0;
+  }
+
+  .page-trajet__carte {
+    height: 55vh;
+    min-height: 320px;
+  }
+
+  .page-trajet__panneau {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: var(--espace-4);
+  }
+}
