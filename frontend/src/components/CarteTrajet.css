@@ -1,1 +1,61 @@
-/* Styles du composant CarteTrajet. */
+/* Styles du composant CarteTrajet (F6). Les épingles des stations viennent de CarteStations.css. */
+
+.carte-trajet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Leaflet a besoin d'une hauteur explicite. */
+.carte-trajet__leaflet {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  z-index: 0; /* évite que la carte passe au-dessus de la barre de navigation */
+}
+
+/* Le tracé de l'itinéraire. */
+.carte-trajet__trace {
+  stroke: var(--couleur-principale);
+}
+
+/* ---------- Marqueurs Départ et Arrivée ---------- */
+
+.carte-trajet__icone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: grab;
+}
+
+.carte-trajet__etiquette {
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--police);
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 25%);
+}
+
+.carte-trajet__point {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 30%);
+}
+
+.carte-trajet__etiquette--depart,
+.carte-trajet__point--depart {
+  background: var(--couleur-principale);
+}
+
+.carte-trajet__etiquette--arrivee,
+.carte-trajet__point--arrivee {
+  background: var(--couleur-accent);
+}
