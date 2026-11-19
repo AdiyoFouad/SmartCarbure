@@ -25,6 +25,12 @@ describe('Composant BadgeAutomate', () => {
   test('affiche « Automate 24h/24 »', () => {
     render(<BadgeAutomate />);
     expect(screen.getByText('Automate 24h/24')).toBeInTheDocument();
+    expect(screen.getByText('Automate 24h/24')).not.toHaveClass('badge-automate--plein');
+  });
+
+  test('variante « plein » (fiche station)', () => {
+    render(<BadgeAutomate plein />);
+    expect(screen.getByText('Automate 24h/24')).toHaveClass('badge-automate', 'badge-automate--plein');
   });
 });
 

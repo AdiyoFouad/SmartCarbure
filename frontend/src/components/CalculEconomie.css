@@ -1,1 +1,83 @@
-/* Styles du composant CalculEconomie. */
+/* Styles du composant CalculEconomie (dans la carte verte de la fiche station). */
+.calcul-economie__champs {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espace-3);
+}
+
+@media (min-width: 480px) {
+  .calcul-economie__champs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.calcul-economie__champ {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+  min-width: 0;
+}
+
+.calcul-economie__champ label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--couleur-principale-foncee);
+}
+
+.calcul-economie select,
+.calcul-economie input {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--espace-2);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  background: var(--couleur-surface);
+  color: var(--couleur-texte);
+  font: inherit;
+}
+
+.calcul-economie__litres {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+}
+
+.calcul-economie__litres input {
+  max-width: 7rem;
+}
+
+.calcul-economie__resultat:not(:empty) {
+  margin-top: var(--espace-4);
+  padding: var(--espace-3);
+  border-radius: var(--rayon);
+  background: var(--couleur-surface);
+}
+
+.calcul-economie__montant {
+  margin: 0 0 var(--espace-1);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.calcul-economie__montant--economie {
+  color: var(--couleur-principale);
+}
+
+.calcul-economie__montant--surcout {
+  color: var(--couleur-accent-texte);
+}
+
+.calcul-economie__montant--egal {
+  color: var(--couleur-texte);
+}
+
+.calcul-economie__moyenne,
+.calcul-economie__saisie {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--couleur-texte-secondaire);
+}
+
+.calcul-economie .message-etat {
+  margin-top: var(--espace-3);
+}

@@ -8,6 +8,12 @@ describe('formaterPrix', () => {
     expect(formaterPrix(0.899)).toBe('0,899 €');
   });
 
+  test('affiche deux décimales pour un montant', () => {
+    expect(formaterPrix(1.1, 2)).toBe('1,10 €');
+    expect(formaterPrix(12.5, 2)).toBe('12,50 €');
+    expect(formaterPrix(0, 2)).toBe('0,00 €');
+  });
+
   test('affiche « Prix indisponible » pour un prix inconnu', () => {
     expect(formaterPrix(null)).toBe('Prix indisponible');
     expect(formaterPrix(undefined)).toBe('Prix indisponible');

@@ -1,26 +1,58 @@
-/* Styles du composant TableauCarburants. */
+/* Styles du composant TableauCarburants : deux colonnes, carburant et prix au litre. */
 .tableau-carburants {
   width: 100%;
   border-collapse: collapse;
-  background: var(--couleur-surface);
 }
 
 .tableau-carburants th,
 .tableau-carburants td {
-  padding: var(--espace-2) var(--espace-3);
+  padding: var(--espace-3) 0;
   border-bottom: 1px solid var(--couleur-bordure);
   text-align: left;
   vertical-align: middle;
 }
 
+.tableau-carburants tbody tr:last-child th,
+.tableau-carburants tbody tr:last-child td {
+  border-bottom: 0;
+}
+
 .tableau-carburants thead th {
-  font-size: 0.9rem;
+  padding-top: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--couleur-texte-secondaire);
 }
 
+.tableau-carburants .tableau-carburants__colonne-prix {
+  text-align: right;
+}
+
+.tableau-carburants__nom {
+  display: block;
+  font-weight: 600;
+}
+
+/* Badge de rupture sous le nom du carburant. */
+.tableau-carburants__nom + .badge-rupture {
+  margin-top: var(--espace-1);
+  white-space: normal;
+}
+
 .tableau-carburants__prix {
+  display: block;
+  font-size: 1.35rem;
   font-weight: 700;
+  color: var(--couleur-principale);
   font-variant-numeric: tabular-nums;
+}
+
+.tableau-carburants__maj {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--couleur-texte-secondaire);
 }
 
 .tableau-carburants__prix--indisponible {
@@ -28,12 +60,13 @@
   font-style: italic;
 }
 
-.tableau-carburants__ligne--rupture th {
+/* Dernier prix connu d'un carburant en rupture : barré et grisé. */
+.tableau-carburants__prix-barre {
   color: var(--couleur-texte-secondaire);
+  font-variant-numeric: tabular-nums;
 }
 
-.tableau-carburants__maj {
-  font-size: 0.9rem;
+.tableau-carburants__ligne--rupture .tableau-carburants__nom {
   color: var(--couleur-texte-secondaire);
 }
 
