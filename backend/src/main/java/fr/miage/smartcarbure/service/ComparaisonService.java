@@ -2,6 +2,7 @@ package fr.miage.smartcarbure.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,14 +66,20 @@ public class ComparaisonService {
 			}
 		}
 
-		BigDecimal somme = BigDecimal.ZERO;
-		int nombreStations = 0;
+		Map<Carburant, BigDecimal> sommes = new EnumMap<>(Carburant.class);
+		Map<Carburant, Integer> comptes = new EnumMap<>(Carburant.class);
+		for (Carburant typeCarburant : Carburant.values()) {
+			sommes.put(typeCarburant, BigDecimal.ZERO);
+			comptes.put(typeCarburant, 0);
+		}
 		String nomZone = zone;
 		for (Station station : stationsUniques.values()) {
-			BigDecimal prix = prixDisponible(station, carburant);
-			if (prix != null) {
-				somme = somme.add(prix);
-				nombreStations++;
+			for (Carburant typeCarburant : Carburant.values()) {
+				BigDecimal prix = prixDisponible(station, typeCarburant);
+				if (prix != null) {
+					sommes.put(typeCarburant, sommes.get(typeCarburant).add(prix));
+					comptes.put(typeCarburant, comptes.get(typeCarburant) + 1);
+				}
 			}
 			String nomOfficiel = nomOfficiel(station, type);
 			if (nomOfficiel != null) {
@@ -80,9 +87,14 @@ public class ComparaisonService {
 			}
 		}
 
-		BigDecimal prixMoyen = nombreStations == 0 ? null
-				: somme.divide(BigDecimal.valueOf(nombreStations), DECIMALES_PRIX, RoundingMode.HALF_UP);
-		return new ZoneComparaisonDTO(nomZone, prixMoyen, nombreStations);
+		Map<Carburant, BigDecimal> moyennes = new EnumMap<>(Carburant.class);
+		for (Carburant typeCarburant : Carburant.values()) {
+			int nombre = comptes.get(typeCarburant);
+			moyennes.put(typeCarburant, nombre == 0 ? null
+					: sommes.get(typeCarburant).divide(BigDecimal.valueOf(nombre), DECIMALES_PRIX, RoundingMode.HALF_UP));
+		}
+		return new ZoneComparaisonDTO(nomZone, moyennes.get(carburant), comptes.get(carburant),
+				moyennes, comptes, stationsUniques.size());
 	}
 
 	private static BigDecimal prixDisponible(Station station, Carburant carburant) {
