@@ -29,10 +29,10 @@ function ComposantTest() {
       <span data-testid="utilisateur">{utilisateur?.nom || 'aucun'}</span>
       <span data-testid="jeton">{jeton || 'aucun'}</span>
       <button type="button" onClick={() => connecter('test@test.fr', 'secret123')}>
-        Connecter
+        Action Connexion
       </button>
       <button type="button" onClick={deconnecter}>
-        Déconnecter
+        Action Déconnexion
       </button>
       <button type="button" onClick={() => mettreAJourUtilisateur({ carburantPrefere: 'SP95' })}>
         Changer Carburant
@@ -94,7 +94,7 @@ describe('AuthContext et AuthProvider', () => {
       </AuthProvider>
     );
 
-    await user.click(screen.getByRole('button', { name: /connecter/i }));
+    await user.click(screen.getByRole('button', { name: 'Action Connexion' }));
 
     await waitFor(() => {
       expect(screen.getByTestId('connecte')).toHaveTextContent('oui');
@@ -124,7 +124,7 @@ describe('AuthContext et AuthProvider', () => {
 
     expect(screen.getByTestId('connecte')).toHaveTextContent('oui');
 
-    await user.click(screen.getByRole('button', { name: /déconnecter/i }));
+    await user.click(screen.getByRole('button', { name: 'Action Déconnexion' }));
 
     await waitFor(() => {
       expect(screen.getByTestId('connecte')).toHaveTextContent('non');
