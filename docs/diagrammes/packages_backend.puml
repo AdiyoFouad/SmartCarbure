@@ -1,0 +1,69 @@
+@startuml packages_backend
+' Source de docs/diagrammes/packages_backend.png (packages du backend et leurs dépendances).
+' Les flèches viennent des import du code de main. Après une modification, régénérer l'image avec PlantUML.
+
+title SmartCarbure - Organisation des packages du backend
+
+set separator none
+skinparam packageStyle folder
+
+package "fr.miage.smartcarbure" {
+  package config {
+  }
+  package controller {
+  }
+  package service {
+  }
+  package client {
+  }
+  package repository {
+  }
+  package mapper {
+  }
+  package exception {
+  }
+  package dto {
+  }
+  package model {
+  }
+  package enums {
+  }
+}
+
+' Couches principales
+controller ..> service : appelle
+controller ..> dto : reçoit / renvoie
+service ..> client : appelle les API
+service ..> repository : lit / enregistre
+service ..> mapper : convertit avec
+service ..> model : manipule
+service ..> dto : renvoie
+service ..> exception : lève
+client ..> model : convertit le JSON en
+client ..> exception : lève
+repository ..> model : persiste
+mapper ..> model : lit
+mapper ..> dto : produit
+exception ..> dto : ErreurDTO
+
+' Sécurité : filtre JWT
+config ..> service : JwtService
+config ..> repository : UtilisateurRepository
+config ..> dto : ErreurDTO
+
+' Raccourcis qui sautent une couche (en gris)
+controller -[#999999,dashed]-> client : ItineraireClient
+controller -[#999999,dashed]-> mapper : StationMapper, PositionMapper
+controller -[#999999,dashed]-> model : Utilisateur, Trajet
+dto -[#999999,dashed]-> model : Utilisateur
+
+' Mise en page : enums tout en bas
+model -[hidden]-> enums
+
+note right of enums
+  Carburant, TypeTri, TypeEmplacement, TypeRupture :
+  utilisés par presque tous les packages
+  (flèches non dessinées pour la lisibilité)
+end note
+
+@enduml
