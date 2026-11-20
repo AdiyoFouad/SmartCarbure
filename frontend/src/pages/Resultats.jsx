@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { List, Map as MapIcon } from 'lucide-react';
 import { CARBURANT_PAR_DEFAUT, CODES_CARBURANTS, libelleCarburant } from '../constants/carburants';
+import BoutonExportCsv from '../components/BoutonExportCsv';
 import FormulaireRecherche from '../components/FormulaireRecherche';
 import StationCard from '../components/StationCard';
 import CarteStations from '../components/CarteStations';
@@ -176,6 +177,12 @@ function Resultats() {
               Distance la plus proche
             </button>
           </div>
+          {/* Export des stations affichées (F18) : désactivé pendant le chargement, en cas d'erreur ou sans résultat */}
+          <BoutonExportCsv
+            stations={chargement || erreur ? [] : tries}
+            carburant={carburant}
+            className="resultats__export"
+          />
         </div>
       </div>
 

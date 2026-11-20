@@ -118,6 +118,20 @@ describe('Page Resultats', () => {
     expect(await screen.findByText(/Aucune station pour « Lyon »/)).toBeInTheDocument();
   });
 
+  test('le bouton Exporter en CSV est désactivé quand aucune station n’est trouvée', async () => {
+    afficherRecherche('/resultats?q=Lyon&carburant=GAZOLE&rayon=10');
+
+    expect(await screen.findByText(/Aucune station pour « Lyon »/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /exporter en csv/i })).toBeDisabled();
+  });
+
+  test('le bouton Exporter en CSV est actif quand des stations sont affichées', async () => {
+    afficherRecherche('/resultats?q=Rennes&carburant=GAZOLE&rayon=10');
+
+    expect(await screen.findByRole('heading', { name: '3 stations trouvées' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /exporter en csv/i })).toBeEnabled();
+  });
+
   test('affiche une erreur et permet de relancer la recherche', async () => {
     rechercherStations.mockRejectedValueOnce(new Error('Service indisponible.'));
     afficherRecherche('/resultats?q=Rennes&carburant=GAZOLE&rayon=10');
