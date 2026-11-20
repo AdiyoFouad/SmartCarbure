@@ -49,7 +49,7 @@ L'application suit une **architecture client-serveur en 3 tiers**, où le fronte
 
 ### 2.1 Architecture du backend
 
-Le backend suit une **architecture en couches** (Controller – Service – Client / Repository). Chaque couche n'appelle que la couche située en dessous.
+Le backend suit une **architecture en couches** (Controller – Service – Client / Repository). En principe, chaque couche n'appelle que la couche située en dessous ; les quelques raccourcis qui existent dans le code apparaissent en gris dans le diagramme des packages (§3.1).
 
 | Couche | Responsabilité |
 |---|---|
@@ -57,8 +57,10 @@ Le backend suit une **architecture en couches** (Controller – Service – Clie
 | `service` | Logique métier : recherche, filtres, tri, calcul de distance, trajet, économie sur un plein, comparaison, comptes, jetons et favoris |
 | `client` | Appeler les API externes (Prix des carburants, service d'itinéraire) et convertir leur JSON en objets Java |
 | `repository` | Accéder à PostgreSQL (Spring Data JPA) |
-| `model` | Classes métier (Station, Carburant, Utilisateur…) |
+| `mapper` | Convertir les objets du modèle en DTO, c'est-à-dire au format JSON du contrat d'API |
+| `model` | Classes métier (Station, PrixCarburant, Utilisateur…) |
 | `dto` | Objets échangés avec le frontend |
+| `enums` | Énumérations partagées : codes carburant, tri, emplacement, type de rupture |
 | `exception` | Exceptions métier et gestion centralisée des erreurs |
 | `config` | Configuration (sécurité avec Spring Security et JWT, CORS, client HTTP et URL des API) |
 
@@ -94,25 +96,31 @@ backend/src/main/java/fr/miage/smartcarbure/
 ├── service/
 ├── client/
 ├── repository/
+├── mapper/
 ├── model/
 ├── dto/
+├── enums/
 ├── exception/
 ├── config/
 └── SmartCarbureApplication.java
 ```
 
+Les flèches du diagramme viennent des `import` du code : une flèche de A vers B signifie qu'une classe de A utilise une classe de B. Les flèches grises sont des raccourcis qui sautent une couche (par exemple `TrajetController` appelle directement `ItineraireClient`). Sa source est [`docs/diagrammes/packages_backend.puml`](docs/diagrammes/packages_backend.puml) ; l'image se régénère avec la même commande que le diagramme de classes (§3.2).
+
 | Package | Classes |
 |---|---|
-| `model` | `Station`, `Position`, `Ville`, `Departement`, `Region`, `Service`, `Carburant`, `PrixCarburant`, `Trajet`, `Utilisateur`, `Favori`, `TypeEmplacement`, `TypeRupture` |
-| `dto` | `CritereRecherche`, `StationDTO`, `TrajetResponse`, `InscriptionRequest`, `ConnexionRequest`, `AuthResponse`, `FavoriDTO`, `PreferencesDTO`, `EconomieRequest`, `EconomieResponse`, `TypeTri` |
-| `client` | `CarburantApiClient`, `ItineraireClient` |
-| `service` | `RechercheService`, `CalculDistance`, `StationService`, `TrajetService`, `EconomieService`, `ComparaisonService`, `UtilisateurService`, `FavoriService`, `JwtService` |
+| `controller` | `StationController`, `EconomieController`, `TrajetController`, `ComparaisonController`, `AuthController`, `FavoriController`, `PreferencesController` |
+| `service` | `RechercheService`, `StationService`, `CalculDistance`, `TrajetService`, `EconomieService`, `ComparaisonService`, `UtilisateurService`, `JwtService`, `FavoriService` |
+| `client` | `CarburantApiClient`, `StationJsonConverter`, `ItineraireClient` |
 | `repository` | `UtilisateurRepository`, `FavoriRepository` |
-| `controller` | `StationController`, `TrajetController`, `ComparaisonController`, `EconomieController`, `AuthController`, `FavoriController`, `PreferencesController` |
+| `mapper` | `StationMapper`, `PositionMapper`, `VilleMapper`, `DepartementMapper`, `RegionMapper`, `HoraireMapper`, `ServiceStationMapper`, `PrixCarburantMapper` |
+| `model` | `Station`, `Position`, `Ville`, `Departement`, `Region`, `Horaire`, `ServiceStation`, `PrixCarburant`, `Trajet`, `StationSurTrajet`, `Utilisateur`, `Favori` |
+| `dto` | `StationDTO`, `PositionDTO`, `VilleDTO`, `DepartementDTO`, `RegionDTO`, `HoraireDTO`, `ServiceStationDTO`, `PrixCarburantDTO`, `CritereRechercheDTO`, `TrajetResponse`, `TrajetDTO`, `ComparaisonResponse`, `ZoneComparaisonDTO`, `EconomieRequest`, `EconomieResponse`, `InscriptionRequest`, `ConnexionRequest`, `AuthResponse`, `UtilisateurDTO`, `FavoriDTO`, `PreferencesDTO`, `ErreurDTO` |
+| `enums` | `Carburant`, `TypeTri`, `TypeEmplacement`, `TypeRupture` |
 | `exception` | `ApiIndisponibleException`, `StationIntrouvableException`, `UtilisateurDejaExistantException`, `IdentifiantsInvalidesException`, `GlobalExceptionHandler` |
-| `config` | `RestClientConfig`, `CorsConfig`, `SecurityConfig` |
+| `config` | `SecurityConfig`, `JwtAuthenticationFilter`, `ReponseErreurSecurite`, `CorsConfig`, `RestClientConfig` |
 
-Les routes REST exposées par les contrôleurs sont décrites dans le contrat d'API [`frontend/docs/contrat-api.md`](frontend/docs/contrat-api.md).
+Les routes REST exposées par les contrôleurs sont décrites dans le contrat d'API [`docs/contrat-api.md`](docs/contrat-api.md).
 
 ### 3.2 Diagramme de classes (modèle métier)
 
