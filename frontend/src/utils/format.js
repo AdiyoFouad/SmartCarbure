@@ -1,10 +1,18 @@
 // Fonctions de formatage partagées par toutes les pages (prix, distances, dates).
 // Elles acceptent null ou undefined sans planter : le backend renvoie null pour les valeurs inconnues.
 
-const FORMAT_PRIX = new Intl.NumberFormat('fr-FR', {
-  minimumFractionDigits: 3,
-  maximumFractionDigits: 3,
-});
+const FORMATS_PRIX = new Map();
+
+/** Format français à `decimales` décimales, créé une seule fois par nombre de décimales. */
+function formatPrix(decimales) {
+  if (!FORMATS_PRIX.has(decimales)) {
+    FORMATS_PRIX.set(
+      decimales,
+      new Intl.NumberFormat('fr-FR', { minimumFractionDigits: decimales, maximumFractionDigits: decimales })
+    );
+  }
+  return FORMATS_PRIX.get(decimales);
+}
 
 const FORMAT_KM = new Intl.NumberFormat('fr-FR', {
   minimumFractionDigits: 1,
@@ -32,15 +40,17 @@ function versDate(date) {
 }
 
 /**
- * Formate un prix au litre avec trois décimales : 1.789 devient « 1,789 € ».
+ * Formate un prix en euros : trois décimales par défaut pour un prix au litre (1.789 devient « 1,789 € »),
+ * deux pour un montant (formaterPrix(1.1, 2) donne « 1,10 € »).
  * @param {number|null|undefined} prix prix en euros
+ * @param {number} [decimales=3] nombre de décimales affichées
  * @returns {string} prix formaté, ou « Prix indisponible » si le prix est inconnu (carburant en rupture)
  */
-export function formaterPrix(prix) {
+export function formaterPrix(prix, decimales = 3) {
   if (typeof prix !== 'number' || !Number.isFinite(prix)) {
     return 'Prix indisponible';
   }
-  return `${FORMAT_PRIX.format(prix)} €`;
+  return `${formatPrix(decimales).format(prix)} €`;
 }
 
 /**

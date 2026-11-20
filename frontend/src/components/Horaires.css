@@ -1,13 +1,24 @@
-/* Styles du composant Horaires. */
+/* Styles du composant Horaires : jour à gauche, heures à droite, séparateurs fins. */
 .horaires {
+  width: 100%;
   border-collapse: collapse;
 }
 
 .horaires th,
 .horaires td {
-  padding: var(--espace-1) var(--espace-3) var(--espace-1) 0;
+  padding: var(--espace-2) 0;
+  border-bottom: 1px solid var(--couleur-bordure);
   text-align: left;
   font-variant-numeric: tabular-nums;
+}
+
+.horaires tr:last-child th,
+.horaires tr:last-child td {
+  border-bottom: 0;
+}
+
+.horaires td {
+  text-align: right;
 }
 
 .horaires__jour {

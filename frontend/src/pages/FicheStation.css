@@ -1,54 +1,131 @@
-/* Styles du composant FicheStation. */
+/* Styles de la page FicheStation : cartes blanches arrondies avec une ombre légère, vert principal. */
+.page-fiche-station {
+  --fiche-ombre: 0 1px 3px rgba(31, 41, 51, 0.08), 0 4px 12px rgba(31, 41, 51, 0.05);
+  --fiche-rayon: 14px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.page-fiche-station__retour {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-1);
+  margin-bottom: var(--espace-3);
+  padding: var(--espace-1) 0;
+  border: 0;
+  background: none;
+  color: var(--couleur-principale);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-fiche-station__retour:hover {
+  text-decoration: underline;
+}
+
 .page-fiche-station__entete {
-  margin-bottom: var(--espace-5);
-}
-
-.page-fiche-station__titre {
-  margin: 0 0 var(--espace-1);
-  font-size: 1.6rem;
-}
-
-.page-fiche-station__lieu {
-  margin: 0 0 var(--espace-2);
-  color: var(--couleur-texte-secondaire);
+  margin-bottom: var(--espace-4);
 }
 
 .page-fiche-station__badges {
   display: flex;
   flex-wrap: wrap;
   gap: var(--espace-2);
+  margin-bottom: var(--espace-2);
 }
 
-.page-fiche-station__grille {
+.page-fiche-station__titre {
+  margin: 0 0 var(--espace-2);
+  font-size: 1.6rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.page-fiche-station__adresse {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espace-1);
+  margin: 0 0 var(--espace-1);
+  color: var(--couleur-texte);
+}
+
+.page-fiche-station__adresse svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--couleur-principale);
+}
+
+.page-fiche-station__zone {
+  margin: 0;
+  padding-left: calc(18px + var(--espace-1));
+  color: var(--couleur-texte-secondaire);
+  font-size: 0.95rem;
+}
+
+.page-fiche-station__cartes {
   display: grid;
   gap: var(--espace-4);
 }
 
-@media (min-width: 900px) {
-  .page-fiche-station__grille {
-    grid-template-columns: 3fr 2fr;
-    align-items: start;
-  }
-
-  .page-fiche-station__carte {
-    grid-column: 1 / -1;
-  }
-}
-
-.page-fiche-station__bloc {
-  padding: var(--espace-4);
-  border: 1px solid var(--couleur-bordure);
-  border-radius: var(--rayon);
-  background: var(--couleur-surface);
+.page-fiche-station__carte-bloc {
   min-width: 0;
+  padding: var(--espace-4);
+  border-radius: var(--fiche-rayon);
+  background: var(--couleur-surface);
+  box-shadow: var(--fiche-ombre);
 }
 
-.page-fiche-station__bloc h2 {
+.page-fiche-station__titre-carte {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
   margin: 0 0 var(--espace-3);
   font-size: 1.15rem;
 }
 
+.page-fiche-station__titre-carte svg {
+  color: var(--couleur-principale);
+}
+
+/* Carte verte du calcul d'économie. */
+.page-fiche-station__carte-bloc--economie {
+  border: 1px solid var(--couleur-principale);
+  background: var(--couleur-principale-claire);
+}
+
+.page-fiche-station__carte-bloc--economie .page-fiche-station__titre-carte {
+  color: var(--couleur-principale-foncee);
+}
+
+/* Services en pastilles. */
 .page-fiche-station__services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
   margin: 0;
-  padding-left: var(--espace-5);
+  padding: 0;
+  list-style: none;
+}
+
+.page-fiche-station__services li {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  background: var(--couleur-principale-claire);
+  color: var(--couleur-principale-foncee);
+  font-size: 0.88rem;
+}
+
+/* Carte Leaflet arrondie. */
+.page-fiche-station__localisation {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--fiche-rayon);
+  box-shadow: var(--fiche-ombre);
+}
+
+.page-fiche-station__automate {
+  margin: var(--espace-3) 0 0;
+  font-size: 0.9rem;
+  color: var(--couleur-principale-foncee);
 }
