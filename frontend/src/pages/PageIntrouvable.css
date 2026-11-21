@@ -1,1 +1,69 @@
-/* Styles du composant PageIntrouvable. */
+/* Styles de la page PageIntrouvable : carte blanche arrondie, centrée, vert principal. */
+.page-introuvable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 520px;
+  margin: var(--espace-6) auto;
+  padding: var(--espace-6) var(--espace-5);
+  border-radius: 14px;
+  background: var(--couleur-surface);
+  box-shadow: 0 1px 3px rgba(31, 41, 51, 0.08), 0 4px 12px rgba(31, 41, 51, 0.05);
+  text-align: center;
+}
+
+.page-introuvable__icone {
+  margin-bottom: var(--espace-3);
+  color: var(--couleur-principale);
+}
+
+.page-introuvable h1 {
+  margin: 0 0 var(--espace-2);
+  font-size: 1.6rem;
+}
+
+.page-introuvable__texte {
+  margin: 0 0 var(--espace-5);
+  color: var(--couleur-texte-secondaire);
+}
+
+.page-introuvable__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espace-3);
+}
+
+.page-introuvable__bouton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espace-2);
+  min-height: 2.5rem;
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid var(--couleur-principale);
+  border-radius: var(--rayon);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.page-introuvable__bouton--principal {
+  background: var(--couleur-principale);
+  color: #fff;
+}
+
+.page-introuvable__bouton--principal:hover {
+  background: var(--couleur-principale-foncee);
+  border-color: var(--couleur-principale-foncee);
+}
+
+.page-introuvable__bouton--secondaire {
+  background: var(--couleur-surface);
+  color: var(--couleur-principale-foncee);
+}
+
+.page-introuvable__bouton--secondaire:hover {
+  background: var(--couleur-principale-claire);
+}
