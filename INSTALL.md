@@ -9,7 +9,7 @@ Ce document explique :
 2. [comment exécuter les suites de tests](#3-exécuter-les-suites-de-tests) ;
 3. [comment exécuter le logiciel](#4-exécuter-le-logiciel).
 
-Toute l'installation se fait avec **Docker** : il n'est pas nécessaire d'installer Java, Maven, Node.js ou PostgreSQL sur sa machine.
+L'application se construit et s'exécute avec **Docker** : il n'est pas nécessaire d'installer Java, Maven, Node.js ou PostgreSQL pour la lancer. Les suites de tests, elles, se lancent directement sur la machine et demandent Java 21 et Node.js (voir les [prérequis](#1-prérequis)).
 
 *Ce document sera mis à jour à chaque livraison (V1, V2) pour rester conforme au code.*
 
@@ -34,6 +34,10 @@ Toute l'installation se fait avec **Docker** : il n'est pas nécessaire d'instal
 | Git | 2.x | `git --version` |
 | Docker Desktop (Windows / macOS) ou Docker Engine (Linux) | 24.x | `docker --version` |
 | Docker Compose | 2.x (inclus dans Docker Desktop) | `docker compose version` |
+| JDK (tests du backend uniquement) | 21 | `java -version` |
+| Node.js et npm (tests du frontend uniquement) | 20.x | `node --version` |
+
+Maven n'a pas besoin d'être installé : le dépôt contient le Maven Wrapper (`mvnw`, `mvnw.cmd`).
 
 Sous Windows, Docker Desktop nécessite **WSL 2** ; il propose de l'activer lors de son installation.
 
@@ -97,21 +101,51 @@ La première construction peut prendre quelques minutes (téléchargement des im
 
 ## 3. Exécuter les suites de tests
 
-Les tests sont lancés dans des conteneurs dédiés, définis dans `docker-compose.yml` avec le profil `test`. Ils ne démarrent pas avec l'application.
+Les tests se lancent directement sur la machine, sans Docker : le backend avec le Maven Wrapper (Java 21), le frontend avec npm (Node.js).
 
 ### 3.1 Tests du backend (JUnit 5 et Mockito)
 
-```bash
-docker compose run --rm backend-tests
+Sous Windows (PowerShell) :
+
+```powershell
+cd backend
+.\mvnw.cmd test
 ```
 
-Cette commande exécute `mvn verify` : elle lance tous les tests JUnit et génère le rapport de couverture.
+Sous Linux / macOS :
+
+```bash
+cd backend
+./mvnw test
+```
+
+Cette commande compile le backend et lance tous les tests JUnit.
+
+Le test `SmartCarbureApplicationTests` démarre toute l'application Spring et a besoin de la base **PostgreSQL** : sans base démarrée (par exemple avec `docker compose up -d db` et les variables `SPRING_DATASOURCE_*`), il échoue. Pour lancer tous les autres tests sans base de données :
+
+```powershell
+.\mvnw.cmd test "-Dtest=!SmartCarbureApplicationTests" "-Dsurefire.failIfNoSpecifiedTests=false"
+```
+
+```bash
+./mvnw test '-Dtest=!SmartCarbureApplicationTests' -Dsurefire.failIfNoSpecifiedTests=false
+```
 
 Les tests unitaires n'appellent pas les vraies API externes : les clients d'API sont simulés avec **Mockito**. Ils ne dépendent donc ni de la disponibilité de l'API ni de la connexion Internet (hors téléchargement des dépendances).
 
 ### 3.2 Couverture de tests (JaCoCo)
 
-Après l'exécution des tests du backend, le rapport de couverture est disponible sur votre machine dans :
+Le rapport de couverture est généré par la phase `verify` de Maven (et non par `test`). Depuis le dossier `backend` :
+
+```powershell
+.\mvnw.cmd verify "-Dtest=!SmartCarbureApplicationTests" "-Dsurefire.failIfNoSpecifiedTests=false"
+```
+
+```bash
+./mvnw verify '-Dtest=!SmartCarbureApplicationTests' -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+Le rapport est ensuite disponible sur votre machine dans :
 
 ```
 backend/target/site/jacoco/index.html
@@ -123,15 +157,29 @@ Les résultats détaillés des tests se trouvent dans `backend/target/surefire-r
 
 ### 3.3 Lancer un seul test du backend
 
+Depuis le dossier `backend`, sous Windows (PowerShell) :
+
+```powershell
+.\mvnw.cmd test "-Dtest=CalculDistanceTest"
+```
+
+Sous Linux / macOS :
+
 ```bash
-docker compose run --rm backend-tests mvn test -Dtest=CalculDistanceTest
+./mvnw test -Dtest=CalculDistanceTest
 ```
 
 ### 3.4 Tests du frontend
 
+Les tests du frontend utilisent **Vitest** et React Testing Library. Les commandes sont les mêmes sous Windows, Linux et macOS :
+
 ```bash
-docker compose run --rm frontend-tests
+cd frontend
+npm install
+npx vitest run
 ```
+
+`npm install` n'est nécessaire qu'une fois (puis après une modification de `package.json`).
 
 ### 3.5 Tests fonctionnels depuis l'interface
 
@@ -197,11 +245,16 @@ La configuration se fait dans le fichier `.env` à la racine du projet.
 | `POSTGRES_DB` | Nom de la base de données | `smartcarbure` |
 | `POSTGRES_USER` | Utilisateur PostgreSQL | `smartcarbure` |
 | `POSTGRES_PASSWORD` | Mot de passe PostgreSQL | à définir |
-| `CARBURANT_API_URL` | Adresse de l'API Prix des carburants | `https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records` |
-| `ITINERAIRE_API_URL` | Adresse du service d'itinéraire | à définir |
-| `ITINERAIRE_API_KEY` | Clé du service d'itinéraire (si OpenRouteService) | à définir |
-| `JWT_SECRET` | Clé de signature des jetons de connexion | à définir |
-| `VITE_API_URL` | Adresse du backend utilisée par le frontend | `http://localhost:8080/api` |
+| `CARBURANT_API_URL` | Adresse de l'API Prix des carburants (voir la remarque ci-dessous) | `https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records` |
+| `ITINERAIRE_API_URL` | Adresse du service d'itinéraire OpenRouteService (voir la remarque ci-dessous) | `https://api.heigit.org` |
+| `ITINERAIRE_API_KEY` | Clé personnelle et gratuite OpenRouteService (https://account.heigit.org), nécessaire pour la recherche le long d'un trajet | aucune : **à fournir** |
+| `JWT_SECRET` | Clé de signature des jetons de connexion (au moins 32 caractères) | valeur de développement : **à changer en production** |
+
+Seule `ITINERAIRE_API_KEY` doit vraiment être fournie (pour la recherche le long d'un trajet) ; sans elle, la page Trajet affiche le message « Service temporairement indisponible ».
+
+`CARBURANT_API_URL` et `ITINERAIRE_API_URL` ont une valeur par défaut dans `backend/src/main/resources/application.properties`. Elles ne sont **pas transmises** au backend par `docker-compose.yml` : sous Docker, les définir dans `.env` n'a donc aucun effet, et ce sont les valeurs par défaut qui s'appliquent. Elles ne servent que lorsque le backend est lancé hors Docker.
+
+Le frontend n'a pas besoin de l'adresse du backend : il appelle `/api` en URL relative, redirigée vers le backend par le proxy de Vite en développement et par Nginx sous Docker.
 
 Le fichier `.env` contient des mots de passe et des clés : il ne doit **jamais** être envoyé sur GitHub (il est listé dans `.gitignore`). Seul `.env.example`, sans valeurs secrètes, est versionné.
 
