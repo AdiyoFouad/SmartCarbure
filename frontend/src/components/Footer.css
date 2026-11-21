@@ -1,1 +1,31 @@
-/* Styles du composant Footer. */
+/* Styles du composant Footer : petit texte gris, fine bordure en haut, fond blanc sur le fond de page. */
+.footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--couleur-bordure);
+  background: var(--couleur-surface);
+  color: var(--couleur-texte-secondaire);
+  font-size: 0.85rem;
+}
+
+.footer__contenu {
+  padding-top: var(--espace-4);
+  padding-bottom: var(--espace-4);
+  text-align: center;
+}
+
+.footer__contenu p {
+  margin: 0;
+}
+
+.footer__contenu p + p {
+  margin-top: var(--espace-1);
+}
+
+.footer a {
+  color: var(--couleur-principale-foncee);
+  text-decoration: underline;
+}
+
+.footer a:hover {
+  color: var(--couleur-principale);
+}
