@@ -1,0 +1,57 @@
+@startuml sequence_erreurs
+' Source de docs/diagrammes/sequence_erreurs.png (scénarios exceptionnels de la recherche).
+' Les appels et les messages affichés suivent le code de main. Après une modification, régénérer l'image avec PlantUML.
+
+title SmartCarbure - Séquence : scénarios exceptionnels de la recherche
+
+autonumber
+actor Utilisateur
+participant "Frontend React" as Front
+participant StationController
+participant RechercheService
+participant CarburantApiClient
+participant GlobalExceptionHandler
+participant "API Prix des carburants" as Api
+
+alt Géolocalisation refusée par l'utilisateur
+  Utilisateur -> Front : clique « Me localiser »
+  Front -> Front : le navigateur refuse la position
+  Front --> Utilisateur : « La localisation a été refusée. Vous pouvez saisir\nune ville ou un code postal. »
+
+else Ville ou code postal inconnu
+  Utilisateur -> Front : saisit une ville
+  Front -> StationController : GET /api/stations?ville=…&carburant=…
+  StationController -> RechercheService : rechercher(CritereRechercheDTO)
+  RechercheService -> CarburantApiClient : rechercherParVille(ville)\n(ou rechercherParCodePostal si 5 chiffres)
+  CarburantApiClient -> Api : GET /records?where=ville like "…"
+  Api --> CarburantApiClient : liste vide
+  CarburantApiClient --> RechercheService : liste vide
+  RechercheService --> StationController : liste vide
+  StationController --> Front : 200 OK + []
+  Front --> Utilisateur : « Aucune station pour « … », vérifiez la saisie. »
+
+else API Prix des carburants indisponible
+  Utilisateur -> Front : lance une recherche
+  Front -> StationController : GET /api/stations?…
+  StationController -> RechercheService : rechercher(CritereRechercheDTO)
+  RechercheService -> CarburantApiClient : rechercherAutour(lat, lon, rayon)
+  CarburantApiClient -> Api : GET /records?…
+  Api --> CarburantApiClient : erreur 5xx ou délai dépassé
+  CarburantApiClient -->> GlobalExceptionHandler : ApiIndisponibleException\n(remonte le service et le contrôleur)
+  GlobalExceptionHandler --> Front : 503 + ErreurDTO { statut, message }
+  Front --> Utilisateur : « Service temporairement indisponible. Réessayez\ndans quelques instants. » + bouton « Réessayer »
+
+else Aucune station dans le rayon
+  Utilisateur -> Front : lance une recherche autour de sa position
+  Front -> StationController : GET /api/stations?lat=…&lon=…&rayon=…
+  StationController -> RechercheService : rechercher(CritereRechercheDTO)
+  RechercheService -> CarburantApiClient : rechercherAutour(lat, lon, rayon)
+  CarburantApiClient -> Api : GET /records?…
+  Api --> CarburantApiClient : liste vide
+  CarburantApiClient --> RechercheService : liste vide
+  RechercheService --> StationController : liste vide
+  StationController --> Front : 200 OK + []
+  Front --> Utilisateur : « Aucune station trouvée à moins de … km de votre position.\nEssayez un rayon plus large. »
+end
+
+@enduml
