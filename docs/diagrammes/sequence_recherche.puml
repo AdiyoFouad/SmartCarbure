@@ -10,6 +10,7 @@ participant "Frontend React" as Front
 participant StationController
 participant RechercheService
 participant CarburantApiClient
+participant StationJsonConverter
 participant StationMapper
 participant "API Prix des carburants" as Api
 
@@ -21,15 +22,18 @@ RechercheService -> RechercheService : vérifie la position et le rayon (1 à 50
 RechercheService -> CarburantApiClient : rechercherAutour(lat, lon, 10)
 loop pages de 100 stations (500 au plus)
   CarburantApiClient -> Api : GET /records?where=within_distance(geom, POINT(…), 10km)
-  Api --> CarburantApiClient : stations (JSON)
+  Api --> CarburantApiClient : stations de la page (JSON)
+  CarburantApiClient -> StationJsonConverter : convertirListe(réponse)
+  StationJsonConverter --> CarburantApiClient : List<Station> de la page
+  CarburantApiClient -> CarburantApiClient : ajoute les stations sans doublon (par id)
 end
-CarburantApiClient -> CarburantApiClient : convertit le JSON en objets Station
 CarburantApiClient --> RechercheService : List<Station>
 RechercheService -> RechercheService : garde les stations qui vendent du Gazole\net situées à moins de 10 km (CalculDistance)
 RechercheService -> RechercheService : trie par prix (stations en rupture en fin de liste)
 loop pour chaque station
   RechercheService -> StationMapper : toDTO(station)
-  StationMapper --> RechercheService : StationDTO (+ distanceKm)
+  StationMapper --> RechercheService : StationDTO
+  RechercheService -> RechercheService : ajoute distanceKm (CalculDistance)
 end
 RechercheService --> StationController : List<StationDTO>
 StationController --> Front : 200 OK + JSON
