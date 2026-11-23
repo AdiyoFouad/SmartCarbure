@@ -52,12 +52,12 @@ Ce document décrit les tests à effectuer **depuis le frontend** pour valider l
 
 | ID | Fonctionnalité | Étapes | Résultat attendu | Statut |
 |---|---|---|---|---|
-| U01 | F11 – Création de compte | Remplir le formulaire d'inscription avec un email valide et un mot de passe, valider | Le compte est créé et l'utilisateur est informé du succès | NT |
-| U02 | F11 – Email déjà utilisé | S'inscrire avec un email déjà enregistré | Message « Cet email est déjà utilisé » | NT |
-| U03 | F11 – Email invalide | S'inscrire avec « test@ » | Message d'erreur sur le format de l'email, compte non créé | NT |
-| U04 | F12 – Connexion | Se connecter avec un email et un mot de passe corrects | L'utilisateur est connecté, son nom apparaît dans le menu | NT |
-| U05 | F12 – Mauvais mot de passe | Se connecter avec un mot de passe incorrect | Message « Email ou mot de passe incorrect » | NT |
-| U06 | F12 – Déconnexion | Cliquer sur « Se déconnecter » | L'utilisateur est déconnecté, les pages réservées ne sont plus accessibles | NT |
+| U01 | F11 – Création de compte | Remplir le formulaire d'inscription avec un email valide et un mot de passe, valider | Le compte est créé et l'utilisateur est informé du succès | OK |
+| U02 | F11 – Email déjà utilisé | S'inscrire avec un email déjà enregistré | Message « Cet email est déjà utilisé » | OK |
+| U03 | F11 – Email invalide | S'inscrire avec « test@ » | Message d'erreur sur le format de l'email, compte non créé | OK |
+| U04 | F12 – Connexion | Se connecter avec un email et un mot de passe corrects | L'utilisateur est connecté, son nom apparaît dans le menu | OK |
+| U05 | F12 – Mauvais mot de passe | Se connecter avec un mot de passe incorrect | Message « Email ou mot de passe incorrect » | OK |
+| U06 | F12 – Déconnexion | Cliquer sur « Se déconnecter » | L'utilisateur est déconnecté, les pages réservées ne sont plus accessibles | OK |
 | U07 | F13 – Préférences | Connecté, choisir Gazole et 15 km comme préférences, se déconnecter puis se reconnecter | Le carburant et le rayon sont pré-remplis dans la recherche | NT |
 | U08 | F14 – Ajouter un favori | Connecté, cliquer sur « Ajouter aux favoris » sur une station | La station apparaît dans la page « Mes favoris » | NT |
 | U09 | F14 – Retirer un favori | Dans « Mes favoris », retirer une station | La station disparaît de la liste | NT |
@@ -78,7 +78,7 @@ Ce document décrit les tests à effectuer **depuis le frontend** pour valider l
 
 | Version | Date | Testeur | Tests OK | Tests KO | Tests NT | Issues ouvertes |
 |---|---|---|---|---|---|---|
-| V1 | | | | | | |
+| V1 | 22/11/2026 | DIARRA Sartière Fatim (Lot 4) | 6 | 0 | 0 (Lot 4) | — |
 | V2 | | | | | | |
 
 Chaque test KO donne lieu à une **issue GitHub rédigée en anglais**, puis à un test JUnit qui reproduit le bug avant sa correction.
