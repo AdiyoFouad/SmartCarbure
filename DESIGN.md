@@ -210,27 +210,33 @@ java -jar plantuml.jar -charset UTF-8 -tpng docs/diagrammes/classes.puml
 | Étape | Situation | Réaction du système |
 |---|---|---|
 | 1 | Champs invalides (rayon hors limites, carburant non choisi) | Message d'erreur de saisie, aucune requête envoyée |
-| 2 | Géolocalisation refusée par l'utilisateur | Message invitant à saisir une ville ou un code postal |
-| Variante | Ville ou code postal inconnu | Message « Aucune station pour cette ville, vérifiez la saisie » |
-| 3 | API Prix des carburants indisponible | Erreur 503, message clair et bouton « Réessayer » |
-| 3 | Aucune station dans le rayon | Message « Aucune station trouvée, élargissez le rayon » |
+| 2 | Géolocalisation refusée par l'utilisateur | Message « La localisation a été refusée. Vous pouvez saisir une ville ou un code postal. » |
+| Variante | Ville ou code postal inconnu | Réponse 200 avec une liste vide ; message « Aucune station pour « … », vérifiez la saisie. » |
+| 3 | API Prix des carburants indisponible | Erreur 503 ; message « Service temporairement indisponible. Réessayez dans quelques instants. » et bouton « Réessayer » |
+| 3 | Aucune station dans le rayon | Réponse 200 avec une liste vide ; message « Aucune station trouvée à moins de … km de votre position. Essayez un rayon plus large. » |
 | 4 | Carburant en rupture dans une station | La station est affichée avec un badge « Rupture » |
 
 ### 4.3 Diagramme de séquence : scénario nominal de la recherche
+
+Les diagrammes de séquence 4.3 à 4.5 suivent les appels du code : leurs sources sont dans `docs/diagrammes/` (`sequence_recherche.puml`, `sequence_erreurs.puml`, `sequence_trajet.puml`) et les images se régénèrent avec la même commande que le diagramme de classes (§3.2).
+
+Le service récupère les stations par pages de 100 (500 au plus), garde celles qui vendent le carburant et sont dans le rayon, les trie, puis `StationMapper` convertit chaque station en `StationDTO` au format du contrat d'API.
 
 ![Séquence de recherche](docs/diagrammes/sequence_recherche.png)
 
 ### 4.4 Diagramme de séquence : scénarios exceptionnels
 
+Aucun contrôleur ne traite lui-même les erreurs : une exception (par exemple `ApiIndisponibleException`) remonte jusqu'à `GlobalExceptionHandler`, qui choisit le code HTTP (503, 404, 400) et renvoie toujours un `ErreurDTO` `{ statut, message }`. Une ville inconnue ou un rayon sans station ne sont pas des erreurs : la réponse est 200 avec une liste vide.
+
 ![Séquence des scénarios exceptionnels](docs/diagrammes/sequence_erreurs.png)
 
 ### 4.5 Diagramme de séquence : stations le long d'un trajet
 
-1. L'utilisateur place les marqueurs de départ et d'arrivée sur la carte et choisit un carburant.
+1. L'utilisateur place les marqueurs de départ et d'arrivée sur la carte et choisit un carburant (et, s'il le souhaite, la distance maximale à la route : 1 à 10 km, 5 par défaut).
 2. Le frontend envoie les coordonnées des deux marqueurs au backend.
-3. Le système calcule l'itinéraire grâce au service d'itinéraire.
-4. Le système recherche les stations autour de points répartis sur le trajet.
-5. Le système supprime les doublons, filtre par carburant et trie par prix.
+3. `TrajetController` vérifie les paramètres **avant** d'appeler le service d'itinéraire, pour ne pas consommer son quota pour rien, puis appelle directement `ItineraireClient` (OpenRouteService) pour calculer l'itinéraire.
+4. `TrajetService` refuse un trajet de plus de 500 km, prend un point tous les 3 km sur la route et recherche les stations autour de ces points, par tronçons de 20 points.
+5. Le système supprime les doublons, garde les stations qui vendent le carburant et sont à moins de la distance choisie de la route, puis les trie par prix (stations en rupture en fin de liste).
 6. Le système trace l'itinéraire et affiche les stations sur la carte.
 
 ![Séquence du trajet](docs/diagrammes/sequence_trajet.png)

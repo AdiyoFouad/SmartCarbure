@@ -1,0 +1,43 @@
+@startuml sequence_trajet
+' Source de docs/diagrammes/sequence_trajet.png (F6 : stations le long d'un trajet, scénario nominal).
+' Les appels suivent le code de main. Après une modification, régénérer l'image avec PlantUML.
+
+title SmartCarbure - Séquence : rechercher les stations le long d'un trajet
+
+autonumber
+actor Utilisateur
+participant "Frontend React" as Front
+participant TrajetController
+participant ItineraireClient
+participant TrajetService
+participant CarburantApiClient
+participant "OpenRouteService" as Ors
+participant "API Prix des carburants" as Api
+
+Utilisateur -> Front : place le départ et l'arrivée sur la carte, choisit SP95
+Front -> TrajetController : GET /api/trajet?depart=lat,lon&arrivee=lat,lon&carburant=SP95&rayon=5
+TrajetController -> TrajetController : lit les coordonnées et vérifie le rayon (1 à 10 km)
+note right of TrajetController
+  Vérifié avant l'appel à OpenRouteService,
+  pour ne pas consommer le quota pour rien.
+  Le contrôleur appelle directement ItineraireClient.
+end note
+TrajetController -> ItineraireClient : calculerTrajet(depart, arrivee)
+ItineraireClient -> Ors : POST /v2/directions/driving-car/geojson
+Ors --> ItineraireClient : itinéraire GeoJSON (points, distance)
+ItineraireClient --> TrajetController : Trajet (points, distanceKm)
+TrajetController -> TrajetService : rechercherLeLongDuTrajet(trajet, 5, SP95)
+TrajetService -> TrajetService : refuse un trajet de plus de 500 km,\nprend un point tous les 3 km sur la route
+loop par tronçon de 20 points
+  TrajetService -> CarburantApiClient : rechercherAutourDePoints(points, 6,5 km)
+  CarburantApiClient -> Api : GET /records?where=within_distance(…) OR within_distance(…) …
+  Api --> CarburantApiClient : stations (JSON)
+  CarburantApiClient --> TrajetService : List<Station>
+end
+TrajetService -> TrajetService : supprime les doublons, garde le SP95 et les stations\nà moins de 5 km de la route, trie par prix (ruptures en fin)
+TrajetService --> TrajetController : List<StationSurTrajet> (station + distance à la route)
+TrajetController -> TrajetController : convertit en TrajetResponse\n(PositionMapper, StationMapper)
+TrajetController --> Front : 200 OK + JSON (trajet + stations)
+Front --> Utilisateur : trace l'itinéraire et affiche les stations
+
+@enduml

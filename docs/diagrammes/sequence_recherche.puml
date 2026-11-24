@@ -1,0 +1,42 @@
+@startuml sequence_recherche
+' Source de docs/diagrammes/sequence_recherche.png (F1 : recherche autour de sa position, scénario nominal).
+' Les appels suivent le code de main. Après une modification, régénérer l'image avec PlantUML.
+
+title SmartCarbure - Séquence : rechercher les stations autour de sa position (scénario nominal)
+
+autonumber
+actor Utilisateur
+participant "Frontend React" as Front
+participant StationController
+participant RechercheService
+participant CarburantApiClient
+participant StationJsonConverter
+participant StationMapper
+participant "API Prix des carburants" as Api
+
+Utilisateur -> Front : clique « Me localiser », choisit Gazole, 10 km, tri par prix
+Front -> Front : récupère la position GPS du navigateur (useGeolocalisation)
+Front -> StationController : GET /api/stations?lat=48.11&lon=-1.68&rayon=10&carburant=GAZOLE&tri=PRIX
+StationController -> RechercheService : rechercher(CritereRechercheDTO)
+RechercheService -> RechercheService : vérifie la position et le rayon (1 à 50 km)
+RechercheService -> CarburantApiClient : rechercherAutour(lat, lon, 10)
+loop pages de 100 stations (500 au plus)
+  CarburantApiClient -> Api : GET /records?where=within_distance(geom, POINT(…), 10km)
+  Api --> CarburantApiClient : stations de la page (JSON)
+  CarburantApiClient -> StationJsonConverter : convertirListe(réponse)
+  StationJsonConverter --> CarburantApiClient : List<Station> de la page
+  CarburantApiClient -> CarburantApiClient : ajoute les stations sans doublon (par id)
+end
+CarburantApiClient --> RechercheService : List<Station>
+RechercheService -> RechercheService : garde les stations qui vendent du Gazole\net situées à moins de 10 km (CalculDistance)
+RechercheService -> RechercheService : trie par prix (stations en rupture en fin de liste)
+loop pour chaque station
+  RechercheService -> StationMapper : toDTO(station)
+  StationMapper --> RechercheService : StationDTO
+  RechercheService -> RechercheService : ajoute distanceKm (CalculDistance)
+end
+RechercheService --> StationController : List<StationDTO>
+StationController --> Front : 200 OK + JSON
+Front --> Utilisateur : affiche la liste, la carte et le bouton « Exporter en CSV »
+
+@enduml
